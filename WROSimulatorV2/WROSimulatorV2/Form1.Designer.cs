@@ -47,6 +47,7 @@
             this.openFileButton = new System.Windows.Forms.Button();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.breakpointButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.fieldPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
@@ -216,12 +217,23 @@
             this.openFileDialog1.Filter = "WRO Program files (*.wro)|*.wro";
             this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
             // 
+            // breakpointButton
+            // 
+            this.breakpointButton.Location = new System.Drawing.Point(920, 75);
+            this.breakpointButton.Name = "breakpointButton";
+            this.breakpointButton.Size = new System.Drawing.Size(119, 28);
+            this.breakpointButton.TabIndex = 16;
+            this.breakpointButton.Text = "Breakpoint";
+            this.breakpointButton.UseVisualStyleBackColor = true;
+            this.breakpointButton.Click += new System.EventHandler(this.breakpointButton_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(1167, 767);
+            this.Controls.Add(this.breakpointButton);
             this.Controls.Add(this.openFileButton);
             this.Controls.Add(this.saveAsButton);
             this.Controls.Add(this.saveButton);
@@ -266,6 +278,7 @@
         private System.Windows.Forms.Button openFileButton;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
+        private System.Windows.Forms.Button breakpointButton;
     }
 }
 

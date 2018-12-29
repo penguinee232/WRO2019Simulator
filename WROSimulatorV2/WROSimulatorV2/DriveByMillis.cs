@@ -27,8 +27,9 @@ namespace WROSimulatorV2
                 new GetSetFunc<int>((i)=>LeftPower, (v,i)=>LeftPower = v, "LeftPower",null,Extensions.PowerIsValid),
                 new GetSetFunc<int>((i)=>RightPower, (v,i)=>RightPower = v, "RightPower",null, Extensions.PowerIsValid),
                 new GetSetFunc<float>((i)=>Distance, (v,i)=>Distance = v, "Distance", new List<Control>(){ distanceControl.GetInfoFromFieldButton("Get Distance") }),
+
+                new GetSetFunc<VisulizeableList<MyVector2>>((i)=>Test, (v,i)=>Test = v, "Test"),
                 new GetSetFunc<MoveByMillisMode>((i)=>MoveByMillisMode, (v,i)=>MoveByMillisMode = v, "MoveByMillisMode"),
-                new GetSetFunc<VisulizeableList<MyVector2>>((i)=>Test, (v,i)=>Test = v, "Test")
             };
             Init();
         }

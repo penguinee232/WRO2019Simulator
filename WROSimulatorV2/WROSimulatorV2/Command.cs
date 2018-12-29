@@ -47,6 +47,10 @@ namespace WROSimulatorV2
             newItem.CommandTreeNode = CommandTreeNode;
             return CopyItems(newItem, this);
         }
+        public virtual bool RepeatCommand(Robot robot)
+        {
+            return false;
+        }
         public override VisulizableItem Copy()
         {
             Command command = (Command)Extensions.GetDefaultFromConstructor(GetType());

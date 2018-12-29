@@ -17,12 +17,12 @@ namespace WROSimulatorV2
         public Label Label { get; set; }
         public Control Control { get; set; }
         public ControlNode ControlNode { get; set; }
-        Point indentAmount;
+        public Point indentAmount;
         int spaceAmount;
         public IGetSetFunc GetSetFunc { get; set; }
         public int Index { get; set; }
         public event EventHandler<VisulizedItemEventArgs> ValueChanged;
-        public ControlNode ParentNode { get; private set; }
+        public ControlNode ParentNode { get; set; }
         public static readonly int CheckBoxSpace = 0;
         public RadioButtonGroup RadioButtonGroup = null;
         public Form1 Form;
@@ -30,6 +30,7 @@ namespace WROSimulatorV2
         RadioButton radioButton = null;
         List<Control> precedingControls;
         public Label VariableLabel = null;
+        public bool HasToogle;
         public LabeledControl(string labelText, Control control, Point indentAmount, IGetSetFunc getSetFunc, int index, ControlNode parentNode, bool toggleable, int spaceAmount, Form1 form)
         {
             InitializeComponent();
@@ -47,17 +48,19 @@ namespace WROSimulatorV2
             Control = control;
             Controls.Clear();
 
+            checkBox = new CheckBox();
+            checkBox.AutoSize = true;
+            checkBox.Location = new Point(0, 0);
+            checkBox.Text = "";
+            checkBox.Checked = true;
+            checkBox.Visible = false;
+            checkBox.CheckedChanged += CheckBox_CheckedChanged;
+            Controls.Add(checkBox);
+            precedingControls.Add(checkBox);
+            HasToogle = toggleable;
             if (toggleable)
             {
-                checkBox = new CheckBox();
-                checkBox.AutoSize = true;
-                checkBox.Location = new Point(0, 0);
-                checkBox.Text = "";
-                checkBox.Checked = true;
-                checkBox.CheckedChanged += CheckBox_CheckedChanged;
-                Controls.Add(checkBox);
-                precedingControls.Add(checkBox);
-                Label.Location = new Point(checkBox.Size.Width + CheckBoxSpace, 0);
+                checkBox.Visible = true;
             }
             precedingControls.Add(Label);
             //precedingControls.Add(VariableLabel);
@@ -185,9 +188,10 @@ namespace WROSimulatorV2
             Point last = new Point(0, 0);
             int maxHeight = 0;
             Control lastPrecedingControls = null;
+            checkBox.Visible = HasToogle;
             foreach (var c in precedingControls)
             {
-                if (c != null)
+                if (c != null && (c != checkBox || checkBox.Visible))
                 {
                     if ((GetSetFunc.IsVariable && !variableControls.Contains(c)) || (!Control.Visible && !alwaysShownControls.Contains(c)))
                     {
@@ -258,7 +262,10 @@ namespace WROSimulatorV2
         {
             if (newIndex != SelectedIndex)
             {
-                Buttons[SelectedIndex].Checked = false;
+                if (SelectedIndex < Buttons.Count)
+                {
+                    Buttons[SelectedIndex].Checked = false;
+                }
                 SelectedIndex = newIndex;
                 Buttons[SelectedIndex].Checked = true;
             }

@@ -78,5 +78,48 @@ namespace WROSimulatorV2
             var list = DeserializeItems(span);
             Variable = list[0].Variable.Value;
         }
+
+        public bool IsTrue(Operatiors operatior, object other)
+        {
+            object variableValue = Form1.VariableValues[Variable];
+            switch (operatior)
+            {
+                case (Operatiors.Equals):
+                    if (variableValue == null && other != null)
+                    {
+                        return false;
+                    }
+                    return variableValue.Equals(other);
+                case (Operatiors.NotEqual):
+                    if (variableValue == null && other != null)
+                    {
+                        return true;
+                    }
+                    return !variableValue.Equals(other);
+                default:
+                    if (variableValue.GetType().GetInterface("IComparable") != null)
+                    {
+                        IComparable variableCompare = (IComparable)variableValue;
+                        IComparable otherCompare = (IComparable)other;
+                        switch (operatior)
+                        {
+                            case (Operatiors.LessThan):
+                                return variableCompare.CompareTo(other) > 0;
+                            case (Operatiors.GreaterThan):
+                                return variableCompare.CompareTo(other) < 0;
+                            case (Operatiors.LessThanEqual):
+                                return variableCompare.CompareTo(other) >= 0;
+                            case (Operatiors.GreaterThanEqual):
+                                return variableCompare.CompareTo(other) <= 0;
+                            default:
+                                return false;
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
+            }
+        }
     }
 }

@@ -109,7 +109,9 @@ namespace WROSimulatorV2
             int previousSelectedIndex = parent.RadioButtonGroup.SelectedIndex;
             if (Insert(parent.RadioButtonGroup.SelectedIndex, defaultT))
             {
-                parent = Extensions.UpdateVisual(parent, parent.Form);
+                ControlNode parentNode = parent.ControlNode;
+                Form1.UpdateItem(ref parentNode, parentNode.Control.GetSetFunc, parentNode.Control.Index, parentNode.Control.Form);
+                parent.ControlNode = parentNode;
                 parent.RadioButtonGroup.ChangeIndex(previousSelectedIndex);
             }
         }
@@ -120,7 +122,10 @@ namespace WROSimulatorV2
             LabeledControl parent = (LabeledControl)control.Parent;
             int previousSelectedIndex = parent.RadioButtonGroup.SelectedIndex;
             RemoveAt(parent.RadioButtonGroup.SelectedIndex);
-            parent = Extensions.UpdateVisual(parent, parent.Form);
+            parent.RadioButtonGroup.Buttons.RemoveAt(parent.RadioButtonGroup.SelectedIndex);
+            ControlNode parentNode = parent.ControlNode;
+            Form1.UpdateItem(ref parentNode, parentNode.Control.GetSetFunc, parentNode.Control.Index, parentNode.Control.Form);
+            parent.ControlNode = parentNode;
             parent.RadioButtonGroup.ChangeIndex(Math.Min(previousSelectedIndex, Math.Max(0, parent.RadioButtonGroup.Buttons.Count - 1)));
         }
 
@@ -144,7 +149,9 @@ namespace WROSimulatorV2
             int previousSelectedIndex = parent.RadioButtonGroup.SelectedIndex;
             if (Add(defaultT))
             {
-                parent = Extensions.UpdateVisual(parent, parent.Form);
+                ControlNode parentNode = parent.ControlNode;
+                Form1.UpdateItem(ref parentNode, parentNode.Control.GetSetFunc, parentNode.Control.Index, parentNode.Control.Form);
+                parent.ControlNode = parentNode;
                 parent.RadioButtonGroup.ChangeIndex(parent.RadioButtonGroup.Buttons.Count - 1);
             }
         }

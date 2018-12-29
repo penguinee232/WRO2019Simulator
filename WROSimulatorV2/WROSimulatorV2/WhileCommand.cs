@@ -7,17 +7,15 @@ using System.Windows.Forms;
 
 namespace WROSimulatorV2
 {
-    public class IfStatement : Command
+    public class WhileCommand:Command
     {
         public VariableVisulizeItem Variable { get; set; }
         public Operatiors Operatior { get; set; }
         public object Other { get; set; }
         static readonly int otherIndex = 2;
-        public TreeNode Then { get; private set; }
-        public TreeNode Else { get; private set; }
-        Queue<Command> thenCommands;
-        Queue<Command> elseCommands;
-        public IfStatement()
+        public TreeNode Loop { get; private set; }
+        Queue<Command> loopCommands;
+        public WhileCommand()
         {
             Variable = new VariableVisulizeItem();
             Variable.VariableChanged = VariableChanged;
@@ -25,35 +23,16 @@ namespace WROSimulatorV2
             SetOtherToDefault();
             SetVisulizeItems();
         }
-        void SetVisulizeItems()
-        {
-            VisulizeItems = new List<IGetSetFunc>()
-            {
-                new GetSetFunc<VariableVisulizeItem>((i)=>Variable, (v,i)=>Variable.SetVariable(v.Variable), "Variable"),
-                new GetSetFunc<Operatiors>((i)=>Operatior, (v,i)=>Operatior = v, "Operatior"),
-                new GetSetFunc<object>((i)=>Other, (v,i)=>Other = v, "Operatior")
-            };
-            SetOtherVisItem();
-            Init();
-        }
-        private IfStatement(IfStatement original)
+        private WhileCommand(WhileCommand original)
         {
             Form = original.Form;
             original.StoreContainedCommands(Form);
-            if (original.thenCommands != null)
+            if (original.loopCommands != null)
             {
-                thenCommands = new Queue<Command>();
-                foreach (var c in original.thenCommands)
+                loopCommands = new Queue<Command>();
+                foreach (var c in original.loopCommands)
                 {
-                    thenCommands.Enqueue(c.CompleteCopy());
-                }
-            }
-            if (original.elseCommands != null)
-            {
-                elseCommands = new Queue<Command>();
-                foreach (var c in original.elseCommands)
-                {
-                    elseCommands.Enqueue(c.CompleteCopy());
+                    loopCommands.Enqueue(c.CompleteCopy());
                 }
             }
             Variable = original.Variable.CompleteCopy();
@@ -69,23 +48,29 @@ namespace WROSimulatorV2
             }
             SetVisulizeItems();
         }
-
+        void SetVisulizeItems()
+        {
+            VisulizeItems = new List<IGetSetFunc>()
+            {
+                new GetSetFunc<VariableVisulizeItem>((i)=>Variable, (v,i)=>Variable.SetVariable(v.Variable), "Variable"),
+                new GetSetFunc<Operatiors>((i)=>Operatior, (v,i)=>Operatior = v, "Operatior"),
+                new GetSetFunc<object>((i)=>Other, (v,i)=>Other = v, "Operatior")
+            };
+            SetOtherVisItem();
+            Init();
+        }
         void VariableChanged(VariableVisulizeItem item, LabeledControl labeledControl)
         {
             if (Other.GetType() != item.Variable.Type)
             {
                 SetOtherToDefault();
                 SetOtherVisItem();
-
                 IndexInit(otherIndex, true);
 
-                var node = labeledControl.ParentNode;//.Children[otherIndex];
-                Form1.UpdateItem(ref node, node.Control.GetSetFunc, node.Control.Index, node.Control.Form);
-                labeledControl.ParentNode = node;
-                //Extensions.UpdateVisual(parent, parent.Form);
+                LabeledControl parent = labeledControl.ParentNode.Children[otherIndex].Control;
+                Extensions.UpdateVisual(parent, parent.Form);
             }
         }
-
         void SetOtherVisItem()
         {
             VisulizeItems[otherIndex].ItemInfo = new ItemInfo(Variable.Variable.Type, VisulizeItems[2].ItemInfo.Name);
@@ -105,28 +90,16 @@ namespace WROSimulatorV2
         public override void SetCommandTreeNode(TreeNode treeNode)
         {
             base.SetCommandTreeNode(treeNode);
-            Then = treeNode.Nodes.Add("Then");
-            if (thenCommands != null)
+            Loop = treeNode.Nodes.Add("Loop");
+            if (loopCommands != null)
             {
-                var current = Then;
-                foreach (var c in thenCommands)
+                var current = Loop;
+                foreach (var c in loopCommands)
                 {
                     current = Form1.AddCommand(c, current, Form);
                 }
             }
-            Else = treeNode.Nodes.Add("Else");
-            if (elseCommands != null)
-            {
-                var current = Else;
-                foreach (var c in elseCommands)
-                {
-                    current = Form1.AddCommand(c, current, Form);
-                }
-            }
-            Form.DontLookAtOtherChildrenTreeNodes.Add(treeNode);
         }
-
-        
 
         public override Queue<Action> GetActions(Robot robot)
         {
@@ -134,31 +107,26 @@ namespace WROSimulatorV2
         }
         public override void StoreContainedCommands(Form1 form)
         {
-            thenCommands = new Queue<Command>();
-            RCM.GetCommands(Then, 0, form, thenCommands, false);
-
-            elseCommands = new Queue<Command>();
-            RCM.GetCommands(Else, 0, form, elseCommands, false);
+            loopCommands = new Queue<Command>();
+            RCM.GetCommands(Loop, 0, form, loopCommands, false);
         }
         public override Queue<Command> GetContainedCommands(Robot robot)
         {
             if (Variable.IsTrue(Operatior, Other))
             {
-                return thenCommands;
+                return loopCommands;
             }
             else
             {
-                return elseCommands;
+                return new Queue<Command>();
             }
         }
 
         public override VisulizableItem Copy(Command command)
         {
-            IfStatement item = (IfStatement)command;
-            item.Then = Then;
-            item.Else = Else;
-            item.thenCommands = new Queue<Command>(thenCommands);
-            item.elseCommands = new Queue<Command>(elseCommands);
+            WhileCommand item = (WhileCommand)command;
+            item.Loop = Loop;
+            item.loopCommands = new Queue<Command>(loopCommands);
             item.Variable = Variable;
             item.SetOtherToDefault();
             item.SetOtherVisItem();
@@ -167,7 +135,7 @@ namespace WROSimulatorV2
 
         public override Command CompleteCopy()
         {
-            return new IfStatement(this);
+            return new WhileCommand(this);
         }
         public override string Serialize()
         {
@@ -180,11 +148,8 @@ namespace WROSimulatorV2
             }
 
             StoreContainedCommands(Form);
-            VisulizeableList<Command> thenList = new VisulizeableList<Command>(thenCommands);
-            VisulizeableList<Command> elseList = new VisulizeableList<Command>(elseCommands);
-            items.Add(thenList);
-            items.Add(elseList);
-            variables.Add(null);
+            VisulizeableList<Command> loopList = new VisulizeableList<Command>(loopCommands);
+            items.Add(loopList);
             variables.Add(null);
             return Serialize(this, items, variables);
         }
@@ -195,24 +160,22 @@ namespace WROSimulatorV2
             {
                 //if (list[i].Variable == null)
                 //{
-                    VisulizeItems[i].ObjSet(list[i].Value, i);
+                VisulizeItems[i].ObjSet(list[i].Value, i);
                 //}
                 VisulizeItems[i].Variable = list[i].Variable;
             }
             SetOtherVisItem();
             IndexInit(otherIndex, true);
-            VisulizeableList<Command> thenList = (VisulizeableList<Command>)list[VisulizeItems.Count].Value;
-            thenCommands = new Queue<Command>();
-            foreach(var c in thenList.List)
+            VisulizeableList<Command> loopList = (VisulizeableList<Command>)list[VisulizeItems.Count].Value;
+            loopCommands = new Queue<Command>();
+            foreach (var c in loopList.List)
             {
-                thenCommands.Enqueue(c);
+                loopCommands.Enqueue(c);
             }
-            VisulizeableList<Command> elseList = (VisulizeableList<Command>)list[VisulizeItems.Count + 1].Value;
-            elseCommands = new Queue<Command>();
-            foreach (var c in elseList.List)
-            {
-                elseCommands.Enqueue(c);
-            }
+        }
+        public override bool RepeatCommand(Robot robot)
+        {
+            return Variable.IsTrue(Operatior, Other);
         }
     }
 }

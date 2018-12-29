@@ -14,6 +14,7 @@ namespace WROSimulatorV2
         Queue<Action> actions;
         Action currentAction = null;
         Command currentCommand;
+        Command varialbeCurrentCommand;
         RCM childRCM = null;
         public RCM(Robot robot)
         {
@@ -64,6 +65,11 @@ namespace WROSimulatorV2
                 if (!childRCM.Update(out currentlyRunCommand))
                 {
                     childRCM = null;
+                    currentCommand = (Command)varialbeCurrentCommand.GetItemWithVariablesSet();
+                    if (currentCommand.RepeatCommand(robot))
+                    {
+                        actions = currentCommand.GetActions(robot);
+                    }
                 }
                 else
                 {
@@ -82,7 +88,8 @@ namespace WROSimulatorV2
                         }
                         else
                         {
-                            currentCommand = (Command)commands.Dequeue().GetItemWithVariablesSet();
+                            varialbeCurrentCommand = commands.Dequeue();
+                            currentCommand = (Command)varialbeCurrentCommand.GetItemWithVariablesSet();
                             actions = currentCommand.GetActions(robot);
                         }
                     }
@@ -102,6 +109,14 @@ namespace WROSimulatorV2
                                 {
                                     childRCM = new RCM(robot);
                                     childRCM.SetCommands(containedCommands, true);
+                                }
+                                else
+                                {
+                                    currentCommand = (Command)varialbeCurrentCommand.GetItemWithVariablesSet();
+                                    if (currentCommand.RepeatCommand(robot))
+                                    {
+                                        actions = currentCommand.GetActions(robot);
+                                    }
                                 }
                             }
                         }

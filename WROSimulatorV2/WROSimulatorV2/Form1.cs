@@ -50,6 +50,7 @@ namespace WROSimulatorV2
         public PictureBox FieldPictureBox;
         static Form1 debugForm;
         string currentFile = null;
+        HashSet<TreeNode> breakPointedNodes;
         public Form1()
         {
             InitializeComponent();
@@ -92,12 +93,12 @@ namespace WROSimulatorV2
             VariableValues[MyVector2Variable1] = new MyVector2(4, 2);
             #endregion
 
-            miscControls = new List<Control>() { setVariableButton, unSetVariableButton, commandListBox, addCommandButton, removeCommandButton, runCommandsTreeView, runCommandsButton, setAsStartButton, resetRobotButton, autoResetRobotCheckBox, saveButton, saveAsButton, openFileButton };
-            needAnySelectedRunCommandControls = new List<Control>() {removeCommandButton };
+            miscControls = new List<Control>() { setVariableButton, unSetVariableButton, commandListBox, addCommandButton, removeCommandButton, runCommandsTreeView, runCommandsButton, setAsStartButton, resetRobotButton, autoResetRobotCheckBox, saveButton, saveAsButton, openFileButton, breakpointButton };
+            needAnySelectedRunCommandControls = new List<Control>() { removeCommandButton, breakpointButton };
             needOneSelectedRunCommandControls = new List<Control>() { setVariableButton, unSetVariableButton };
             //needSelectedRunCommandControls = new List<Control>() { setVariableButton, unSetVariableButton, removeCommandButton };
 
-            Commands = new List<Type>() { typeof(DriveByMillis), typeof(MoveMotorByMillis), typeof(IfStatement), typeof(MultiAction) };
+            Commands = new List<Type>() { typeof(DriveByMillis), typeof(MoveMotorByMillis), typeof(IfStatement), typeof(MultiAction), typeof(WhileCommand) };
             foreach (var t in Commands)
             {
                 commandListBox.Items.Add(t.GetTypeName());
@@ -148,6 +149,8 @@ namespace WROSimulatorV2
 
             robot = new Robot(robotImage);
             rcm = new RCM(robot);
+            breakPointedNodes = new HashSet<TreeNode>();
+            lastCurrentlyRunningCommands = new HashSet<TreeNode>();
             //robot.Update();
             // robot.Draw(robotGfx);
         }
@@ -174,12 +177,13 @@ namespace WROSimulatorV2
             }
         }
 
+        TreeNode currentlyRunningNode;
+        bool breakPointMode = false;
         private void timer1_Tick(object sender, EventArgs e)
         {
             //string serialize = CommandsFromTreeNodes[programNode.FirstNode].Serialize();
             if (runningCommandsMode && !pauseMode)
             {
-                TreeNode currentlyRunningNode;
                 bool working = rcm.Update(out currentlyRunningNode);
                 if (!working)
                 {
@@ -187,7 +191,22 @@ namespace WROSimulatorV2
                 }
                 else
                 {
-                    RunningTreeColoring(currentlyRunningNode);
+                    HashSet<TreeNode> lastCommands = new HashSet<TreeNode>(lastCurrentlyRunningCommands);
+                    RunningTreeColoring();
+                    breakPointMode = false;
+                    foreach (var n in currentlyRunnningNodes)
+                    {
+                        if (!lastCommands.Contains(n) && breakPointedNodes.Contains(n))
+                        {
+                            breakPointMode = true;
+                            pauseMode = true;
+                            break;
+                        }
+                    }
+                    if (pauseMode)
+                    {
+                        StopRunningCommands(pauseMode);
+                    }
                 }
             }
             robot.Update();
@@ -198,10 +217,10 @@ namespace WROSimulatorV2
         }
         HashSet<TreeNode> currentlyRunnningNodes;
         TreeNode lastRunningTreeNode = null;
-        void RunningTreeColoring(TreeNode currentlyRunningNode)
+        void RunningTreeColoring()
         {
             currentlyRunnningNodes = new HashSet<TreeNode>();
-            if (currentlyRunningNode != null)
+            if (currentlyRunningNode != null && runningCommandsMode)
             {
                 lastRunningTreeNode = currentlyRunningNode;
                 GetAllChildren(currentlyRunningNode, currentlyRunnningNodes);
@@ -217,8 +236,9 @@ namespace WROSimulatorV2
 
             foreach (var n in currentlyRunnningNodes)
             {
-                n.ForeColor = Color.Black;
-                n.BackColor = Color.Yellow;
+                SetTreeNodeColor(n);
+                //n.ForeColor = Color.Black;
+                //n.BackColor = Color.Yellow;
             }
 
             lastCurrentlyRunningCommands = currentlyRunnningNodes;
@@ -242,7 +262,7 @@ namespace WROSimulatorV2
                 {
                     c.Enabled = enable;
                 }
-                if(c==saveButton && enable)
+                if (c == saveButton && enable)
                 {
                     saveButton.Enabled = currentFile != null;
                 }
@@ -340,6 +360,93 @@ namespace WROSimulatorV2
             }
         }
 
+        public static bool UpdateItem(ref ControlNode node, IGetSetFunc item, int index, Form1 form)
+        {
+            string name = item.ItemInfo.Name;
+            node.Control.Label.Text = name + " (" + item.ItemInfo.Type.GetTypeName() + ")";
+            //if (item.ItemInfo.Type == node.Control.GetSetFunc.ItemInfo.Type)
+            //{
+            node.Control.Index = index;
+            node.Control.Form = form;
+            if (item.ItemInfo.Type.IsSubclassOf(typeof(VisulizableItem)))
+            {
+                VisulizableItem visulizableItem = (VisulizableItem)item.ObjGet(index);
+                if (node.Control.Control.GetType() != typeof(Panel))
+                {
+                    node = LoadItem(item, new Point(0, 0), node.Parent, index, node.Parent == null ? false : node.Parent.Control.RadioButtonGroup != null, form);
+                    return true;
+                }
+                else
+                {
+                    for (int i = visulizableItem.VisulizeItems.Count; i < node.Children.Count; i++)
+                    {
+                        node.Control.Control.Controls.RemoveAt(i);
+                        node.Children.RemoveAt(i);
+                    }
+                    for (int i = 0; i < visulizableItem.VisulizeItems.Count; i++)
+                    {
+                        IGetSetFunc getSetFunc = visulizableItem.VisulizeItems[i];
+                        if (i >= node.Children.Count)
+                        {
+                            var control = LoadItem(getSetFunc, new Point(0, 0), node, i, node.Control.RadioButtonGroup != null, form);
+                            node.Control.Control.Controls.Add(control.Control);
+                            node.Children.Add(control);
+                        }
+                        else
+                        {
+                            //bool differentType = getSetFunc.ItemInfo.Type != node.Children[i].Control.GetSetFunc.ItemInfo.Type;
+                            ControlNode child = node.Children[i];
+                            bool differentType = UpdateItem(ref child, getSetFunc, i, form);
+                            node.Children[i] = child;
+
+                            node.Children[i].Parent = node;
+                            node.Children[i].Control.ParentNode = node;
+                            node.Children[i].Control.ControlNode = node.Children[i];
+                            if (differentType)
+                            {
+                                var controls = node.Control.Control.Controls;
+                                //node.Control.Controls.Clear();
+                                controls.RemoveAt(i);
+                                controls.Add(node.Children[i].Control);
+                                controls.SetChildIndex(node.Children[i].Control, i);
+                                
+                                // node.Control.Controls. = node.Children[i].Control
+                            }
+                        }
+                    }
+                    node.Control.HasToogle = visulizableItem.VisulizeItems.Count > 0;
+                }
+                node.ReLocateChildren(spaceAmount);
+            }
+            else
+            {
+                if (node.Control.Control.GetType() == typeof(Panel))
+                {
+                    node = LoadItem(item, new Point(0, 0), node.Parent, index, node.Parent == null ? false : node.Parent.Control.RadioButtonGroup != null, form);
+                    node.ReLocateChildren(spaceAmount);
+                    return true;
+                }
+                else
+                {
+                    if (item.ItemInfo.Type == typeof(bool))
+                    {
+                        CheckBox cBox = (CheckBox)node.Control.Control;
+                        cBox.Checked = (bool)item.ObjGet(index);
+                    }
+                    else
+                    {
+                        node.Control.Control.Text = item.ObjGet(index).ToString();
+                    }
+                }
+            }
+            return false;
+            //}
+            //else
+            //{
+            //    node = LoadItem(item, new Point(0, 0), node.Parent, index, node.Parent == null ? false : node.Parent.Control.RadioButtonGroup != null, form);
+            //}
+        }
+
         private static void Bool_ValueChanged(object sender, VisulizedItemEventArgs e)
         {
             LabeledControl control = (LabeledControl)sender;
@@ -382,14 +489,18 @@ namespace WROSimulatorV2
         static LabeledControl GetLabeledControl(string name, Control control, IGetSetFunc getSetFunc, int index, ControlNode parentNode, VisulizableItem visulizableItem, int spaceAmount, bool partOfRadioButtonGroup, Form1 form)
         {
             bool isVisulizableItem = visulizableItem != null && visulizableItem.VisulizeItems.Count > 0;
-            LabeledControl labeledControl = new LabeledControl(name + " (" + getSetFunc.ItemInfo.Type.GetTypeName() + ")" + ":", control, isVisulizableItem ? labelIndextAmount : labelSpaceAmount, getSetFunc, index, parentNode, isVisulizableItem, spaceAmount, form);
+            LabeledControl labeledControl = new LabeledControl(name + " (" + getSetFunc.ItemInfo.Type.GetTypeName() + ")" + ":", control, GetIndentAmount(visulizableItem), getSetFunc, index, parentNode, isVisulizableItem, spaceAmount, form);
             if (partOfRadioButtonGroup)
             {
                 labeledControl.MakeItemInCollection();
             }
             return labeledControl;
         }
-
+        static Point GetIndentAmount(VisulizableItem item)
+        {
+            bool isVisulizableItem = item != null;
+            return isVisulizableItem ? labelIndextAmount : labelSpaceAmount;
+        }
 
         public static void ApplyToControlNodes(ControlNode node, Action<ControlNode, object> action, object info)
         {
@@ -576,7 +687,7 @@ namespace WROSimulatorV2
                 {
                     c.Enabled = true;
                 }
-                foreach(var c in needOneSelectedRunCommandControls)
+                foreach (var c in needOneSelectedRunCommandControls)
                 {
                     c.Enabled = selectedTreeNodes.Count <= 1;
                 }
@@ -627,7 +738,7 @@ namespace WROSimulatorV2
             else
             {
                 selectedTreeNodes.Add(runCommandsTreeView.SelectedNode);
-                if(CommandsFromTreeNodes.ContainsKey(runCommandsTreeView.SelectedNode))
+                if (CommandsFromTreeNodes.ContainsKey(runCommandsTreeView.SelectedNode))
                 {
                     selectedCommandsTreeNodes.Add(runCommandsTreeView.SelectedNode);
                     selectedCommands.Add(CommandsFromTreeNodes[runCommandsTreeView.SelectedNode]);
@@ -662,16 +773,16 @@ namespace WROSimulatorV2
                     secondNode = node1;
                 }
                 TreeNode current = firstNode;
-                while(current != secondNode)
+                while (current != secondNode)
                 {
                     treeNodes.Add(current);
-                    if(CommandsFromTreeNodes.ContainsKey(current))
+                    if (CommandsFromTreeNodes.ContainsKey(current))
                     {
                         commandTreeNodes.Add(current);
                     }
                     current = current.NextNode;
                 }
-                if(!treeNodes.Contains(secondNode))
+                if (!treeNodes.Contains(secondNode))
                 {
                     treeNodes.Add(secondNode);
                     if (CommandsFromTreeNodes.ContainsKey(secondNode))
@@ -695,14 +806,14 @@ namespace WROSimulatorV2
                     other = node1;
                 }
                 bool addToCommands = toLowNode.Level + 1 == other.Level && !CommandsFromTreeNodes.ContainsKey(other);
-                while(true)
+                while (true)
                 {
                     treeNodes.Add(toLowNode);
-                    if(addToCommands && CommandsFromTreeNodes.ContainsKey(toLowNode))
+                    if (addToCommands && CommandsFromTreeNodes.ContainsKey(toLowNode))
                     {
                         commandTreeNodes.Add(toLowNode);
                     }
-                    if(toLowNode.Index > 0)
+                    if (toLowNode.Index > 0)
                     {
                         toLowNode = toLowNode.PrevNode;
                     }
@@ -714,19 +825,24 @@ namespace WROSimulatorV2
                 GetNodesInBetween(other, toLowNode.Parent, treeNodes, commandTreeNodes);
             }
         }
-        
+
 
         void SetTreeNodeColor(TreeNode node)
         {
-            if (node == runCommandsTreeView.SelectedNode || selectedTreeNodes.Contains(node))
+            if (runningCommandsMode && currentlyRunnningNodes != null && currentlyRunnningNodes.Contains(node))
+            {
+                node.BackColor = Color.Yellow;
+                node.ForeColor = Color.Black;
+            }
+            else if (node == runCommandsTreeView.SelectedNode || selectedTreeNodes.Contains(node))
             {
                 node.BackColor = Color.CornflowerBlue;
                 node.ForeColor = Color.White;
             }
-            else if (runningCommandsMode && currentlyRunnningNodes != null && currentlyRunnningNodes.Contains(node))
+            else if (breakPointedNodes.Contains(node))
             {
-                node.BackColor = Color.Yellow;
-                node.ForeColor = Color.Black;
+                node.BackColor = Color.Red;
+                node.ForeColor = Color.White;
             }
             else if (node == startProgramNode)
             {
@@ -782,9 +898,10 @@ namespace WROSimulatorV2
                     c.Value.Power = storedMotorPowers[c.Key];
                 }
                 Queue<Command> commands = new Queue<Command>();
-                RCM.GetCommands(lastRunningTreeNode, 0, this, commands, true, false, false);
-                rcm.SetCommands(commands, false);
+                RCM.GetCommands(lastRunningTreeNode, 0, this, commands, true, false, breakPointMode);
+                rcm.SetCommands(commands, breakPointMode);
             }
+            breakPointMode = false;
             runCommandsButton.ForeColor = Color.White;
             runCommandsButton.BackColor = Color.Red;
             runCommandsButton.Text = "Pause";
@@ -807,12 +924,13 @@ namespace WROSimulatorV2
             }
             else
             {
-                RunningTreeColoring(null);
+                breakPointMode = false;
+                runningCommandsMode = false;
+                RunningTreeColoring();
                 runCommandsButton.ForeColor = Color.White;
                 runCommandsButton.BackColor = Color.Green;
                 runCommandsButton.Text = "Run Commands";
 
-                runningCommandsMode = false;
                 pauseMode = false;
 
                 rcm.SetCommands(null, true);
@@ -941,13 +1059,32 @@ namespace WROSimulatorV2
 
         private void saveButton_Click(object sender, EventArgs e)
         {
-            if(currentFile == null)
+            if (currentFile == null)
             {
                 saveButton.Enabled = false;
             }
             else
             {
                 File.WriteAllText(currentFile, SerializeCommands());
+            }
+        }
+
+        private void breakpointButton_Click(object sender, EventArgs e)
+        {
+            foreach (var n in selectedCommandsTreeNodes)
+            {
+                if (CommandsFromTreeNodes.ContainsKey(n))
+                {
+                    if (breakPointedNodes.Contains(n))
+                    {
+                        breakPointedNodes.Remove(n);
+                    }
+                    else
+                    {
+                        breakPointedNodes.Add(n);
+                    }
+                    SetTreeNodeColor(n);
+                }
             }
         }
     }
