@@ -166,11 +166,11 @@ namespace WROSimulatorV2
                 {
                     VariableLabel = new Label();
                     VariableLabel.AutoSize = true;
-                    VariableLabel.Text = GetSetFunc.Variable.Value.ToString();
                     VariableLabel.ForeColor = Form1.VariableColor;
                     precedingControls.Add(VariableLabel);
                     Controls.Add(VariableLabel);
                 }
+                VariableLabel.Text = GetSetFunc.Variable.Value.ToString();
             }
             else
             {
