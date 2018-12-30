@@ -13,6 +13,7 @@ namespace WROSimulatorV2
         public Func<T, bool> CanAdd { get; set; }
         public Func<T> GetNewItem { get; set; }
         public List<T> List { get; private set; }
+        public static ControlWrapper Debug;
         public T this[int index]
         {
             get
@@ -76,23 +77,35 @@ namespace WROSimulatorV2
             }
             return false;
         }
-        public override List<Control> GetManatoryControls()
+        public override List<Control> GetManatoryControls(IGetSetFunc getSetFunc, int index)
         {
+            (IGetSetFunc getSetFunc, int index) info = (getSetFunc, index);
             Button addButton = new Button();
             addButton.Text = "Add";
-            addButton.Click += AddButton_Click;
+            var addWrapper = new ControlWrapper(addButton, info);
+            Debug = addWrapper;
+            addButton.Click += addWrapper.Control_ValueChanged;
+            addWrapper.ValueChanged += AddButton_Click;
+
             Button insertButton = new Button();
             insertButton.Text = "Insert";
-            insertButton.Click += InsertButton_Click;
+            var insertWrapper = new ControlWrapper(insertButton, info);
+            insertButton.Click += insertWrapper.Control_ValueChanged;
+            insertWrapper.ValueChanged += InsertButton_Click;
+
             Button removeButton = new Button();
             removeButton.Text = "Remove";
-            removeButton.Click += RemoveButton_Click;
+            var removeWrapper = new ControlWrapper(removeButton, info);
+            removeButton.Click += removeWrapper.Control_ValueChanged;
+            removeWrapper.ValueChanged += RemoveButton_Click;
+
             return new List<Control>() { addButton, insertButton, removeButton };
         }
-        private void InsertButton_Click(object sender, EventArgs e)
+        private void InsertButton_Click(object sender, InfoEventArgs e)
         {
-            Control control = (Control)sender;
-            LabeledControl parent = (LabeledControl)control.Parent;
+            var info = ((IGetSetFunc getSetFunc, int index))e.Info;
+            VisulizeableList<T> list = (VisulizeableList<T>)info.getSetFunc.ObjGet(info.index);
+            LabeledControl currentControl = list.ControlNode.Control;
             T defaultT;
             if (GetNewItem != null)
             {
@@ -106,37 +119,41 @@ namespace WROSimulatorV2
                     defaultT = Extensions.GetDefaultFromConstructor<T>();
                 }
             }
-            int previousSelectedIndex = parent.RadioButtonGroup.SelectedIndex;
-            if (Insert(parent.RadioButtonGroup.SelectedIndex, defaultT))
+            int previousSelectedIndex = currentControl.RadioButtonGroup.SelectedIndex;
+            if (Insert(currentControl.RadioButtonGroup.SelectedIndex, defaultT))
             {
-                ControlNode parentNode = parent.ControlNode;
+                ControlNode parentNode = list.ControlNode;
                 Form1.UpdateItem(ref parentNode, parentNode.Control.GetSetFunc, parentNode.Control.Index, parentNode.Control.Form);
-                parent.ControlNode = parentNode;
-                parent.RadioButtonGroup.ChangeIndex(previousSelectedIndex);
+                list.ControlNode = parentNode;
+                currentControl = list.ControlNode.Control;
+                currentControl.RadioButtonGroup.ChangeIndex(previousSelectedIndex);
             }
         }
 
-        private void RemoveButton_Click(object sender, EventArgs e)
+        private void RemoveButton_Click(object sender, InfoEventArgs e)
         {
-            Control control = (Control)sender;
-            LabeledControl parent = (LabeledControl)control.Parent;
-            int previousSelectedIndex = parent.RadioButtonGroup.SelectedIndex;
-            RemoveAt(parent.RadioButtonGroup.SelectedIndex);
-            parent.RadioButtonGroup.Buttons.RemoveAt(parent.RadioButtonGroup.SelectedIndex);
-            ControlNode parentNode = parent.ControlNode;
+            var info = ((IGetSetFunc getSetFunc, int index))e.Info;
+            VisulizeableList<T> list = (VisulizeableList<T>)info.getSetFunc.ObjGet(info.index);
+
+            LabeledControl currentControl = list.ControlNode.Control;
+            int previousSelectedIndex = currentControl.RadioButtonGroup.SelectedIndex;
+            RemoveAt(currentControl.RadioButtonGroup.SelectedIndex);
+            currentControl.RadioButtonGroup.Buttons.RemoveAt(currentControl.RadioButtonGroup.SelectedIndex);
+            ControlNode parentNode = list.ControlNode;
             Form1.UpdateItem(ref parentNode, parentNode.Control.GetSetFunc, parentNode.Control.Index, parentNode.Control.Form);
-            parent.ControlNode = parentNode;
-            parent.RadioButtonGroup.ChangeIndex(Math.Min(previousSelectedIndex, Math.Max(0, parent.RadioButtonGroup.Buttons.Count - 1)));
+            list.ControlNode = parentNode;
+            currentControl = list.ControlNode.Control;
+            currentControl.RadioButtonGroup.ChangeIndex(Math.Min(previousSelectedIndex, Math.Max(0, currentControl.RadioButtonGroup.Buttons.Count - 1)));
         }
 
-        private void AddButton_Click(object sender, EventArgs e)
+        private static void AddButton_Click(object sender, InfoEventArgs e)
         {
-            Control control = (Control)sender;
-            LabeledControl parent = (LabeledControl)control.Parent;
+            var info = ((IGetSetFunc getSetFunc, int index))e.Info;
+            VisulizeableList<T> list = (VisulizeableList<T>)info.getSetFunc.ObjGet(info.index);
             T defaultT;
-            if (GetNewItem != null)
+            if (list.GetNewItem != null)
             {
-                defaultT = GetNewItem.Invoke();
+                defaultT = list.GetNewItem.Invoke();
             }
             else
             {
@@ -146,13 +163,15 @@ namespace WROSimulatorV2
                     defaultT = Extensions.GetDefaultFromConstructor<T>();
                 }
             }
-            int previousSelectedIndex = parent.RadioButtonGroup.SelectedIndex;
-            if (Add(defaultT))
+            LabeledControl currentControl = list.ControlNode.Control;
+            int previousSelectedIndex = currentControl.RadioButtonGroup.SelectedIndex;
+            if (list.Add(defaultT))
             {
-                ControlNode parentNode = parent.ControlNode;
+                ControlNode parentNode = list.ControlNode;
                 Form1.UpdateItem(ref parentNode, parentNode.Control.GetSetFunc, parentNode.Control.Index, parentNode.Control.Form);
-                parent.ControlNode = parentNode;
-                parent.RadioButtonGroup.ChangeIndex(parent.RadioButtonGroup.Buttons.Count - 1);
+                list.ControlNode = parentNode;
+                currentControl = list.ControlNode.Control;
+                currentControl.RadioButtonGroup.ChangeIndex(currentControl.RadioButtonGroup.Buttons.Count - 1);
             }
         }
 

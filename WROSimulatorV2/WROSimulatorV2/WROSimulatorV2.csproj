@@ -74,6 +74,7 @@
     <Compile Include="Command.cs" />
     <Compile Include="Component.cs" />
     <Compile Include="ControlNode.cs" />
+    <Compile Include="ControlWrapper.cs" />
     <Compile Include="DriveByMillis.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Extensions.cs" />

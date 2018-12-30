@@ -288,9 +288,10 @@ namespace WROSimulatorV2
                 List<ControlNode> controls = new List<ControlNode>();
                 VisulizableItem visulizableItem = (VisulizableItem)item.ObjGet(index);
                 var labeledControl = GetLabeledControl(name, panel, item, index, parent, visulizableItem, spaceAmount, partOfRadioButtonGroup, form);
-
+                
                 labeledControl.Location = position;
                 var node = new ControlNode(labeledControl, parent);
+                visulizableItem.ControlNode = node;
                 if (item.ItemInfo.Type.GetInterfaces().Contains(typeof(IVisulizeableList)))
                 {
                     labeledControl.RadioButtonGroup = new RadioButtonGroup(new List<RadioButton>(), 0);
@@ -371,6 +372,7 @@ namespace WROSimulatorV2
             if (item.ItemInfo.Type.IsSubclassOf(typeof(VisulizableItem)))
             {
                 VisulizableItem visulizableItem = (VisulizableItem)item.ObjGet(index);
+                visulizableItem.ControlNode = node;
                 if (node.Control.Control.GetType() != typeof(Panel))
                 {
                     node = LoadItem(item, new Point(0, 0), node.Parent, index, node.Parent == null ? false : node.Parent.Control.RadioButtonGroup != null, form);

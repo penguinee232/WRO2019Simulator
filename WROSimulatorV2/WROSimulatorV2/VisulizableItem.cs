@@ -14,12 +14,13 @@ namespace WROSimulatorV2
     //}
     public abstract class VisulizableItem
     {
-        public virtual List<Control> GetManatoryControls()
+        public virtual List<Control> GetManatoryControls(IGetSetFunc getSetFunc, int index)
         {
             return null;
         }
         //public static List<ItemInfo> VisulizeItemTypes { get; protected set; }
         public List<IGetSetFunc> VisulizeItems { get; protected set; }
+        public ControlNode ControlNode {get;set;}
         public void Init()
         {
             for (int i = 0; i < VisulizeItems.Count; i++)
@@ -34,7 +35,7 @@ namespace WROSimulatorV2
             if (getSetFunc.ItemInfo.Type.IsSubclassOf(typeof(VisulizableItem)))
             {
                 var item = (VisulizableItem)getSetFunc.ObjGet(i);
-                var controls = item.GetManatoryControls();
+                var controls = item.GetManatoryControls(getSetFunc, i);
                 if (controls != null)
                 {
                     if (wipeControls)

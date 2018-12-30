@@ -93,7 +93,7 @@ namespace WROSimulatorV2
                             actions = currentCommand.GetActions(robot);
                         }
                     }
-                    if (actions != null)
+                    else
                     {
                         if(currentAction == null)
                         {
@@ -144,5 +144,6 @@ namespace WROSimulatorV2
             }
             return true;
         }
+        
     }
 }

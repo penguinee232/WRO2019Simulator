@@ -20,7 +20,7 @@ namespace WROSimulatorV2
             VisulizeItems = new List<IGetSetFunc>();
             Init();
         }
-        public override List<Control> GetManatoryControls()
+        public override List<Control> GetManatoryControls(IGetSetFunc getSetFunc, int index)
         {
             label = new Label();
             label.ForeColor = Form1.VariableColor;
