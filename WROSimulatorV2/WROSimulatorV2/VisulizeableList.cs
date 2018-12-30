@@ -13,7 +13,10 @@ namespace WROSimulatorV2
         public Func<T, bool> CanAdd { get; set; }
         public Func<T> GetNewItem { get; set; }
         public List<T> List { get; private set; }
-        public static ControlWrapper Debug;
+
+        public Type ObjectType => typeof(T);
+        List<ControlWrapper> buttons;
+
         public T this[int index]
         {
             get
@@ -50,7 +53,7 @@ namespace WROSimulatorV2
             {
                 VisulizeItems.Add(new GetSetFunc<T>((j) => List[j], (v, j) => List[j] = v, "Item " + i));
             }
-            Init();
+            Init(false);
         }
         public void RemoveAt(int index)
         {
@@ -83,7 +86,6 @@ namespace WROSimulatorV2
             Button addButton = new Button();
             addButton.Text = "Add";
             var addWrapper = new ControlWrapper(addButton, info);
-            Debug = addWrapper;
             addButton.Click += addWrapper.Control_ValueChanged;
             addWrapper.ValueChanged += AddButton_Click;
 
@@ -98,9 +100,23 @@ namespace WROSimulatorV2
             var removeWrapper = new ControlWrapper(removeButton, info);
             removeButton.Click += removeWrapper.Control_ValueChanged;
             removeWrapper.ValueChanged += RemoveButton_Click;
-
+            buttons = new List<ControlWrapper>() { addWrapper, insertWrapper, removeWrapper };
             return new List<Control>() { addButton, insertButton, removeButton };
         }
+        //protected override void ControlNodeChanged()
+        //{
+        //    if(buttons != null)
+        //    {
+        //        foreach(var b in buttons)
+        //        {
+        //            var info = ((IGetSetFunc getSetFunc, int index))b.Info;
+        //            var parent = (VisulizableItem)ControlNode.Parent.Control.GetSetFunc.ObjGet(ControlNode.Parent.Control.Index);
+        //            (IGetSetFunc getSetFunc, int index) newInfo = (parent.VisulizeItems[info.index], info.index);
+        //            b.Info = newInfo;
+        //        }
+        //    }
+        //}
+
         private void InsertButton_Click(object sender, InfoEventArgs e)
         {
             var info = ((IGetSetFunc getSetFunc, int index))e.Info;
@@ -203,13 +219,16 @@ namespace WROSimulatorV2
             }
         }
 
-        //public class ControlWrapper :Control
-        //{
-        //    public event EventHandler<VisulizedItemEventArgs> EventHappened;
+        public bool Add(object item)
+        {
+            return Add((T)item);
+        }
 
-        //}
+        
     }
     public interface IVisulizeableList
     {
+        Type ObjectType { get; }
+        bool Add(object item);
     }
 }

@@ -20,12 +20,21 @@ namespace WROSimulatorV2
         }
         //public static List<ItemInfo> VisulizeItemTypes { get; protected set; }
         public List<IGetSetFunc> VisulizeItems { get; protected set; }
-        public ControlNode ControlNode {get;set;}
-        public void Init()
+        ControlNode controlNode;
+        public ControlNode ControlNode
+        {
+            get { return controlNode; }
+            set { controlNode = value; ControlNodeChanged(); }
+        }
+        protected virtual void ControlNodeChanged()
+        {
+
+        }
+        public void Init(bool wipeControls)
         {
             for (int i = 0; i < VisulizeItems.Count; i++)
             {
-                IndexInit(i, false);
+                IndexInit(i, wipeControls);
             }
 
         }
@@ -92,6 +101,20 @@ namespace WROSimulatorV2
             for (int i = 0; i < current.VisulizeItems.Count; i++)
             {
                 IGetSetFunc currentGetSet = current.VisulizeItems[i];
+                if(i>= newItem.VisulizeItems.Count && newItem.GetType().GetInterfaces().Contains(typeof(IVisulizeableList)))
+                {
+                    IVisulizeableList list = (IVisulizeableList)newItem;
+                    object value;
+                    if(list.ObjectType.IsClass)
+                    {
+                        value = Extensions.GetDefaultFromConstructor(list.ObjectType);
+                    }
+                    else
+                    {
+                        value = Extensions.GetDefault(list.ObjectType);
+                    }
+                    list.Add(value);
+                }
                 IGetSetFunc newGetSet = newItem.VisulizeItems[i];
                 currentGetSet.CopyBasicInfo(newGetSet);
 
@@ -424,7 +447,7 @@ namespace WROSimulatorV2
                 newFunc.Variable = null;
             }
             newFunc.ItemInfo = ItemInfo;
-            newFunc.Controls = Controls;
+            //newFunc.Controls = Controls;
         }
 
         public bool IsValidItem(object item)

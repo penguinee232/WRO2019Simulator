@@ -31,7 +31,7 @@ namespace WROSimulatorV2
                 new GetSetFunc<VisulizeableList<MyVector2>>((i)=>Test, (v,i)=>Test = v, "Test"),
                 new GetSetFunc<MoveByMillisMode>((i)=>MoveByMillisMode, (v,i)=>MoveByMillisMode = v, "MoveByMillisMode"),
             };
-            Init();
+            Init(false);
         }
 
         public override Queue<Action> GetActions(Robot robot)

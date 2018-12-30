@@ -32,7 +32,7 @@ namespace WROSimulatorV2
                 new GetSetFunc<float>((i)=>Float, (v,i)=>Float = v, "Float"),
                 new GetSetFunc<TestEnum>((i)=>TestEnum, (v,i)=>TestEnum = v, "TestEnum")
             };
-            Init();
+            Init(false);
         }
 
         public override Queue<Action> GetActions(Robot robot)
@@ -74,7 +74,7 @@ namespace WROSimulatorV2
                 new GetSetFunc<VariableVisulizeItem>((i)=>Variable, (v,i)=>Variable = v, "Variable"),
                 new GetSetFunc<VisulizeableList<bool>>((i)=>BoolTest, (v,i)=>BoolTest = v, "BoolTest")
             };
-            Init();
+            Init(false);
         }
 
         public override Queue<Action> GetActions(Robot robot)

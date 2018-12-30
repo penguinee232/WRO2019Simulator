@@ -57,7 +57,7 @@ namespace WROSimulatorV2
                 new GetSetFunc<object>((i)=>Other, (v,i)=>Other = v, "Operatior")
             };
             SetOtherVisItem();
-            Init();
+            Init(false);
         }
         void VariableChanged(VariableVisulizeItem item, LabeledControl labeledControl)
         {

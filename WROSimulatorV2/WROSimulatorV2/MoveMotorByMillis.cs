@@ -23,7 +23,7 @@ namespace WROSimulatorV2
                 new GetSetFunc<float>((i)=>Distance, (v,i)=>Distance = v, "Distance"),
                 new GetSetFunc<Motors>((i)=>Motor, (v,i)=>Motor = v, "Motor", null, itemsNotValid.IsValid),
             };
-            Init();
+            Init(false);
         }
         public override Queue<Action> GetActions(Robot robot)
         {

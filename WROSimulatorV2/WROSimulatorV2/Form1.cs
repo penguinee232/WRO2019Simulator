@@ -278,7 +278,7 @@ namespace WROSimulatorV2
             UpdateCommandPanel();
         }
 
-
+        static IGetSetFunc debug;
         public static ControlNode LoadItem(IGetSetFunc item, Point position, ControlNode parent, int index, bool partOfRadioButtonGroup, Form1 form)
         {
             string name = item.ItemInfo.Name;
@@ -1008,7 +1008,7 @@ namespace WROSimulatorV2
             foreach (var tn in selectedCommands)
             {
                 Command c = tn.CompleteCopy();
-                c.SetCommandTreeNode(new TreeNode());
+                //c.StoreContainedCommands(this);
                 clipboard.Add(c);
             }
         }

@@ -18,7 +18,7 @@ namespace WROSimulatorV2
             VariableChanged = null;
             Variable = Variable.Default();
             VisulizeItems = new List<IGetSetFunc>();
-            Init();
+            Init(false);
         }
         public override List<Control> GetManatoryControls(IGetSetFunc getSetFunc, int index)
         {
@@ -64,14 +64,14 @@ namespace WROSimulatorV2
         public VariableVisulizeItem CompleteCopy()
         {
             VariableVisulizeItem item = new VariableVisulizeItem();
-            item.Variable =Variable;
+            item.Variable = Variable;
             //item.NewVariable(Variable);
             item.VariableChanged = VariableChanged;
             return (VariableVisulizeItem)CopyItems(item, this);
         }
         public override string Serialize()
         {
-            return VisulizableItem.SerializeType(GetType()) + "{" + Variable.Serialize()  + "}";
+            return VisulizableItem.SerializeType(GetType()) + "{" + Variable.Serialize() + "}";
         }
         protected override void Deserialize(Span<char> span)
         {

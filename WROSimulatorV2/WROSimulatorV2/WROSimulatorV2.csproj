@@ -65,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Action.cs" />
+    <Compile Include="BoolPhrase.cs" />
     <Compile Include="ChooseVariableForm.cs">
       <SubType>Form</SubType>
     </Compile>

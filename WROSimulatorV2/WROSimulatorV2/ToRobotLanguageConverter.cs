@@ -28,7 +28,7 @@ namespace WROSimulatorV2
                 cPlusPlusExceptions.Add(new ExceptionInfo((t) => t.IsTheSameGenericType(typeof(VisulizeableList<>)), ListConverter));
                 cPlusPlusExceptions.Add(new ExceptionInfo((t) => t == typeof(IfStatement), IfConverter));
                 cPlusPlusExceptions.Add(new ExceptionInfo((t) => t == typeof(VariableVisulizeItem),
-                    (n) => n.Paramaters[0].Varialble.Value.Name));
+                    (n) => n.Paramaters[0].Variable.Value.Name));
                 converterExeptions.Add(RobotLanguages.CPlusPlus, cPlusPlusExceptions);
                 CPlusPlusNoCommandFuncTypes = new HashSet<Type>() { typeof(IfStatement) };
             }
@@ -214,12 +214,12 @@ namespace WROSimulatorV2
             return code;
         }
 
-        static string GetCPlusPlusCommandNodeCode(CommandsNode node)
+        public static string GetCPlusPlusCommandNodeCode(CommandsNode node)
         {
             string code;
-            if (node.Varialble != null)
+            if (node.Variable != null)
             {
-                return node.Varialble.Value.Name;
+                return node.Variable.Value.Name;
             }
             else if (HasException(node, RobotLanguages.CPlusPlus, out code))
             {
@@ -262,16 +262,13 @@ namespace WROSimulatorV2
         static string IfConverter(CommandsNode node)
         {
             string code = "if(";
-            Variable variable = node.Paramaters[0].Paramaters[0].Varialble.Value;
-            code += variable.Name + " ";
-            Operatiors operatior = (Operatiors)node.Paramaters[1].Value;
-            code += operatior.GetActualOperator() + " ";
-            code += GetCPlusPlusCommandNodeCode(node.Paramaters[2]);
+            //BoolPhrase boolPhrase = (BoolPhrase)node.Paramaters[0].Value;
+            code += BoolPhrase.GetBoolPhrase(node.Paramaters[0]);
             code += ")" + "\n" + "{" + "\n";
-            List<CommandsNode> thenCommands = node.Paramaters[3].Paramaters;
+            List<CommandsNode> thenCommands = node.Paramaters[1].Paramaters;
             code += CPLusPlusConverter(thenCommands, 1);
             code += "\n" + "}";
-            List<CommandsNode> elseCommands = node.Paramaters[4].Paramaters;
+            List<CommandsNode> elseCommands = node.Paramaters[2].Paramaters;
             if (elseCommands != null && elseCommands.Count > 0)
             {
                 code += "\n" + "else" + "\n" + "{" + "\n";
@@ -345,17 +342,17 @@ namespace WROSimulatorV2
         }
     }
 
-    class CommandsNode
+    public class CommandsNode
     {
         public Type Type { get; set; }
         public object Value { get; set; }
-        public Variable? Varialble { get; set; }
+        public Variable? Variable { get; set; }
         public List<CommandsNode> Paramaters { get; set; }
         public CommandsNode(Type type, object value, Variable? variable, List<CommandsNode> paramaters)
         {
             Type = type;
             Value = value;
-            Varialble = variable;
+            Variable = variable;
             Paramaters = paramaters;
         }
     }

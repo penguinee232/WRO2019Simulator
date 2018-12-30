@@ -18,7 +18,7 @@ namespace WROSimulatorV2
 
             VisulizeItems.Add(new GetSetFunc<MyVector2>((i) => Position, (v, i) => Position = v, "Position"));
             VisulizeItems.Add(new GetSetFunc<MyVector2>((i) => Size, (v, i) => Size = v, "Size"));
-            Init();
+            Init(false);
         }
         public static bool operator ==(MyRectangle left, MyRectangle right)
         {
@@ -62,7 +62,7 @@ namespace WROSimulatorV2
 
             VisulizeItems.Add(new GetSetFunc<float>((i) => X, (v, i) => X = v, "X"));
             VisulizeItems.Add(new GetSetFunc<float>((i) => Y, (v, i) => Y = v, "Y"));
-            Init();
+            Init(false);
         }
         public static bool operator ==(MyVector2 left, MyVector2 right)
         {

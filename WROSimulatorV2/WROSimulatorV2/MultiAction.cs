@@ -17,7 +17,7 @@ namespace WROSimulatorV2
         public MultiAction()
         {
             VisulizeItems = new List<IGetSetFunc>();
-            Init();
+            Init(false);
         }
         private MultiAction(MultiAction original)
         {
@@ -31,7 +31,7 @@ namespace WROSimulatorV2
                     commands.Add(c.CompleteCopy());
                 }
             }
-            Init();
+            Init(false);
         }
         public override bool CanAdd(Command command)
         {
