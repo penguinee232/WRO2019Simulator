@@ -78,12 +78,12 @@ namespace WROSimulatorV2
             q.Enqueue(new Action(requests));
             return q;
         }
-        public override VisulizableItem Copy(Command command)
+        public override void Copy(Command command)
         {
             MultiAction multiAction = (MultiAction)command;
             multiAction.CommandsNode = CommandsNode;
             multiAction.commands = commands;
-            return base.Copy(command);
+            base.Copy(command);
         }
 
         public Action GetAction(Robot robot)

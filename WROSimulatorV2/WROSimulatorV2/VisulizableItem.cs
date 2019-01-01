@@ -57,7 +57,8 @@ namespace WROSimulatorV2
         }
         public VisulizableItem GetItemWithVariablesSet()
         {
-            VisulizableItem item = this.Copy();
+            VisulizableItem item = (VisulizableItem)Extensions.GetDefaultFromConstructor(GetType());
+            this.CopyTo(item);
 
             SetCommandVariablessR(item);
 
@@ -70,7 +71,7 @@ namespace WROSimulatorV2
                 IGetSetFunc getSet = item.VisulizeItems[i];
                 if (getSet.IsVariable)
                 {
-                    getSet.ObjSet(Form1.VariableValues[getSet.Variable.Value], i);
+                    getSet.ObjSet(Form1.GetVariable(getSet.Variable.Value), i);
                 }
                 else if (getSet.ItemInfo.Type.IsSubclassOf(typeof(VisulizableItem)))
                 {
@@ -84,16 +85,15 @@ namespace WROSimulatorV2
             }
         }
 
-        public abstract VisulizableItem Copy();
-        public static VisulizableItem CopyItems(VisulizableItem current)
+        public abstract void CopyTo(VisulizableItem newItem);
+        public static void CopyItems(VisulizableItem current)
         {
             VisulizableItem visulizableItem = (VisulizableItem)Extensions.GetDefaultFromConstructor(current.GetType());
-            return CopyItems(visulizableItem, current);
+            CopyItems(visulizableItem, current);
         }
-        public static VisulizableItem CopyItems(VisulizableItem newItem, VisulizableItem current)
+        public static void CopyItems(VisulizableItem newItem, VisulizableItem current)
         {
             CopyItemsR(newItem, current);
-            return newItem;
         }
 
         static void CopyItemsR(VisulizableItem newItem, VisulizableItem current)
@@ -101,11 +101,11 @@ namespace WROSimulatorV2
             for (int i = 0; i < current.VisulizeItems.Count; i++)
             {
                 IGetSetFunc currentGetSet = current.VisulizeItems[i];
-                if(i>= newItem.VisulizeItems.Count && newItem.GetType().GetInterfaces().Contains(typeof(IVisulizeableList)))
+                if (i >= newItem.VisulizeItems.Count && newItem.GetType().GetInterfaces().Contains(typeof(IVisulizeableList)))
                 {
                     IVisulizeableList list = (IVisulizeableList)newItem;
                     object value;
-                    if(list.ObjectType.IsClass)
+                    if (list.ObjectType.IsClass)
                     {
                         value = Extensions.GetDefaultFromConstructor(list.ObjectType);
                     }
@@ -122,7 +122,8 @@ namespace WROSimulatorV2
                 {
                     VisulizableItem currentChild = (VisulizableItem)currentGetSet.ObjGet(i);
                     VisulizableItem newChild = (VisulizableItem)newGetSet.ObjGet(i);
-                    CopyItemsR(newChild, currentChild);
+                    //CopyItemsR(newChild, currentChild);
+                    currentChild.CopyTo(newChild);
                 }
                 else
                 {
@@ -143,7 +144,7 @@ namespace WROSimulatorV2
             {
                 //if (list[i].Variable == null)
                 //{
-                    VisulizeItems[i].ObjSet(list[i].Value, i);
+                VisulizeItems[i].ObjSet(list[i].Value, i);
                 //}
                 VisulizeItems[i].Variable = list[i].Variable;
             }
@@ -272,8 +273,8 @@ namespace WROSimulatorV2
                     //}
                     //else
                     //{
-                        var converter = TypeDescriptor.GetConverter(currentType);
-                        return converter.ConvertFrom(Substing(span));
+                    var converter = TypeDescriptor.GetConverter(currentType);
+                    return converter.ConvertFrom(Substing(span));
                     //}
                 }
             }
@@ -379,10 +380,6 @@ namespace WROSimulatorV2
         bool IsVariable { get; }
         void CopyBasicInfo(IGetSetFunc newFunc);
         bool IsValidItem(object item);
-    }
-    public static class GetSetFunc
-    {
-
     }
     public class GetSetFunc<T> : IGetSetFunc
     {

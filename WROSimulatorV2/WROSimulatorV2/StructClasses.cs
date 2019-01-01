@@ -43,9 +43,9 @@ namespace WROSimulatorV2
             return this == other;
         }
 
-        public override VisulizableItem Copy()
+        public override void CopyTo(VisulizableItem newItem)
         {
-            return CopyItems(this);
+            CopyItems(newItem, this);
         }
     }
     public class MyVector2 : VisulizableItem, IEquatable<MyVector2>
@@ -85,9 +85,13 @@ namespace WROSimulatorV2
         {
             return this == other;
         }
-        public override VisulizableItem Copy()
+        public MyVector2 Copy()
         {
-            return CopyItems(this);
+            return new MyVector2(X, Y);
+        }
+        public override void CopyTo(VisulizableItem newItem)
+        {
+            CopyItems(newItem, this);
         }
     }
 }

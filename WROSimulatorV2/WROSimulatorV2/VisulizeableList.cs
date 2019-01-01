@@ -15,7 +15,6 @@ namespace WROSimulatorV2
         public List<T> List { get; private set; }
 
         public Type ObjectType => typeof(T);
-        List<ControlWrapper> buttons;
 
         public T this[int index]
         {
@@ -100,7 +99,6 @@ namespace WROSimulatorV2
             var removeWrapper = new ControlWrapper(removeButton, info);
             removeButton.Click += removeWrapper.Control_ValueChanged;
             removeWrapper.ValueChanged += RemoveButton_Click;
-            buttons = new List<ControlWrapper>() { addWrapper, insertWrapper, removeWrapper };
             return new List<Control>() { addButton, insertButton, removeButton };
         }
         //protected override void ControlNodeChanged()
@@ -191,12 +189,12 @@ namespace WROSimulatorV2
             }
         }
 
-        public override VisulizableItem Copy()
+        public override void CopyTo(VisulizableItem newItem)
         {
-            VisulizeableList<T> item = new VisulizeableList<T>();
+            VisulizeableList<T> item = (VisulizeableList<T>)newItem;
             item.CanAdd = CanAdd;
             item.GetNewItem = GetNewItem;
-            return CopyItems(item, this);
+            CopyItems(item, this);
         }
 
         public static implicit operator VisulizeableList<T>(List<T> list)

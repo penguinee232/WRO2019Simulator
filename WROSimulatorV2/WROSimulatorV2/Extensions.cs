@@ -302,22 +302,93 @@ namespace WROSimulatorV2
             }
             return type1.Name == type2.Name;
         }
-        public static string GetActualOperator(this Operatiors operatior)
+        public static string GetActualOperator(this CompareOperatiors operatior)
         {
             switch(operatior)
             {
-                case (Operatiors.NotEqual):
+                case (CompareOperatiors.NotEqual):
                     return "!=";
-                case (Operatiors.LessThan):
+                case (CompareOperatiors.LessThan):
                     return "<";
-                case (Operatiors.GreaterThan):
+                case (CompareOperatiors.GreaterThan):
                     return ">";
-                case (Operatiors.LessThanEqual):
+                case (CompareOperatiors.LessThanEqual):
                     return "<=";
-                case (Operatiors.GreaterThanEqual):
+                case (CompareOperatiors.GreaterThanEqual):
                     return ">=";
                 default:
                     return "==";
+            }
+        }
+        public static string GetActualOperator(this SetOperatiors operatior)
+        {
+            switch (operatior)
+            {
+                case (SetOperatiors.PlusEqual):
+                    return "+=";
+                case (SetOperatiors.MinusEqual):
+                    return "-=";
+                case (SetOperatiors.TimesEqual):
+                    return "*=";
+                case (SetOperatiors.DivideEqual):
+                    return "/=";
+                case (SetOperatiors.ModEqual):
+                    return "%=";
+                default:
+                    return "=";
+            }
+        }
+        public static MathOperatiors? GetMathOperator(this SetOperatiors operatior)
+        {
+            switch (operatior)
+            {
+                case (SetOperatiors.PlusEqual):
+                    return MathOperatiors.Add;
+                case (SetOperatiors.MinusEqual):
+                    return MathOperatiors.Subtract;
+                case (SetOperatiors.TimesEqual):
+                    return MathOperatiors.Multiply;
+                case (SetOperatiors.DivideEqual):
+                    return MathOperatiors.Divide;
+                case (SetOperatiors.ModEqual):
+                    return MathOperatiors.Mod;
+                default:
+                    return null;
+            }
+        }
+
+        public static object UseMathOnObject(dynamic val, MathOperatiors operatior, dynamic val2)
+        {
+            switch (operatior)
+            {
+                case (MathOperatiors.Subtract):
+                    return val - val2;
+                case (MathOperatiors.Multiply):
+                    return val * val2;
+                case (MathOperatiors.Divide):
+                    return val / val2;
+                case (MathOperatiors.Mod):
+                    return val % val2;
+                default:
+                    return val + val2;
+            }
+        }
+        public static bool CompareObjects(dynamic val, CompareOperatiors operatior, dynamic val2)
+        {
+            switch (operatior)
+            {
+                case (CompareOperatiors.NotEqual):
+                    return val != val2;
+                case (CompareOperatiors.LessThan):
+                    return val < val2;
+                case (CompareOperatiors.GreaterThan):
+                    return val > val2;
+                case (CompareOperatiors.LessThanEqual):
+                    return val <= val2;
+                case (CompareOperatiors.GreaterThanEqual):
+                    return val >= val2;
+                default:
+                    return val == val2;
             }
         }
     }

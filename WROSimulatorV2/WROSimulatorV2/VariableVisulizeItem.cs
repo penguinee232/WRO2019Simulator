@@ -51,14 +51,14 @@ namespace WROSimulatorV2
             parent.ControlNode.ReLocateChildren(Form1.spaceAmount);
         }
 
-        public override VisulizableItem Copy()
+        public override void CopyTo(VisulizableItem newItem)
         {
-            VariableVisulizeItem item = new VariableVisulizeItem();
+            VariableVisulizeItem item = (VariableVisulizeItem)newItem;
             item.label = label;
             item.Variable = Variable;
             item.VariableChanged = VariableChanged;
             item.parent = parent;
-            return CopyItems(item, this);
+            CopyItems(item, this);
         }
 
         public VariableVisulizeItem CompleteCopy()
@@ -67,7 +67,8 @@ namespace WROSimulatorV2
             item.Variable = Variable;
             //item.NewVariable(Variable);
             item.VariableChanged = VariableChanged;
-            return (VariableVisulizeItem)CopyItems(item, this);
+            CopyItems(item, this);
+            return item;
         }
         public override string Serialize()
         {
@@ -79,18 +80,18 @@ namespace WROSimulatorV2
             Variable = list[0].Variable.Value;
         }
 
-        public bool IsTrue(Operatiors operatior, object other)
+        public bool IsTrue(CompareOperatiors operatior, object other)
         {
-            object variableValue = Form1.VariableValues[Variable];
+            object variableValue = Form1.GetVariable(Variable);
             switch (operatior)
             {
-                case (Operatiors.Equals):
+                case (CompareOperatiors.Equals):
                     if (variableValue == null && other != null)
                     {
                         return false;
                     }
                     return variableValue.Equals(other);
-                case (Operatiors.NotEqual):
+                case (CompareOperatiors.NotEqual):
                     if (variableValue == null && other != null)
                     {
                         return true;
@@ -99,21 +100,22 @@ namespace WROSimulatorV2
                 default:
                     if (variableValue.GetType().GetInterface("IComparable") != null)
                     {
-                        IComparable variableCompare = (IComparable)variableValue;
-                        IComparable otherCompare = (IComparable)other;
-                        switch (operatior)
-                        {
-                            case (Operatiors.LessThan):
-                                return variableCompare.CompareTo(other) > 0;
-                            case (Operatiors.GreaterThan):
-                                return variableCompare.CompareTo(other) < 0;
-                            case (Operatiors.LessThanEqual):
-                                return variableCompare.CompareTo(other) >= 0;
-                            case (Operatiors.GreaterThanEqual):
-                                return variableCompare.CompareTo(other) <= 0;
-                            default:
-                                return false;
-                        }
+                        return Extensions.CompareObjects(variableValue, operatior, other);
+                        //IComparable variableCompare = (IComparable)variableValue;
+                        //IComparable otherCompare = (IComparable)other;
+                        //switch (operatior)
+                        //{
+                        //    case (CompareOperatiors.LessThan):
+                        //        return variableCompare.CompareTo(other) < 0;
+                        //    case (CompareOperatiors.GreaterThan):
+                        //        return variableCompare.CompareTo(other) > 0;
+                        //    case (CompareOperatiors.LessThanEqual):
+                        //        return variableCompare.CompareTo(other) <= 0;
+                        //    case (CompareOperatiors.GreaterThanEqual):
+                        //        return variableCompare.CompareTo(other) >= 0;
+                        //    default:
+                        //        return false;
+                        //}
                     }
                     else
                     {

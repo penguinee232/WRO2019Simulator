@@ -39,7 +39,9 @@ namespace WROSimulatorV2
 
         public override Command CompleteCopy()
         {
-            return (Command)Copy();
+            MoveMotorByMillis moveMotorByMillis = new MoveMotorByMillis();
+            CopyTo(moveMotorByMillis);
+            return moveMotorByMillis;
         }
 
         //public override VisulizableItem Copy()

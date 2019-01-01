@@ -7,17 +7,17 @@ using System.Windows.Forms;
 
 namespace WROSimulatorV2
 {
-    public class WhileCommand : Command
+    public class ForLoopCommand:Command
     {
         public BoolPhrase BoolPhrase { get; set; }
         public TreeNode Loop { get; private set; }
         Queue<Command> loopCommands;
-        public WhileCommand()
+        public ForLoopCommand()
         {
             BoolPhrase = new BoolPhrase();
             SetVisulizeItems();
         }
-        private WhileCommand(WhileCommand original)
+        private ForLoopCommand(ForLoopCommand original)
         {
             Form = original.Form;
             if (original.Loop != null)
@@ -25,6 +25,7 @@ namespace WROSimulatorV2
                 original.StoreContainedCommands(Form);
             }
             LoopFunctions.CopyLoopCommands(original.loopCommands, ref loopCommands);
+
             BoolPhrase = new BoolPhrase();
             original.BoolPhrase.CopyTo(BoolPhrase);
             SetVisulizeItems();
@@ -68,7 +69,7 @@ namespace WROSimulatorV2
 
         public override void Copy(Command command)
         {
-            WhileCommand item = (WhileCommand)command;
+            ForLoopCommand item = (ForLoopCommand)command;
             item.Loop = Loop;
             item.loopCommands = new Queue<Command>(loopCommands);
             base.Copy(command);
@@ -76,7 +77,7 @@ namespace WROSimulatorV2
 
         public override Command CompleteCopy()
         {
-            return new WhileCommand(this);
+            return new ForLoopCommand(this);
         }
         public override string Serialize()
         {
@@ -108,44 +109,4 @@ namespace WROSimulatorV2
             return BoolPhrase.IsTrue();
         }
     }
-    public static class LoopFunctions
-    {
-        public static void Deserialize(VisulizeableList<Command> commands, ref Queue<Command> loopCommands)
-        {
-            loopCommands = new Queue<Command>();
-            foreach (var c in commands.List)
-            {
-                loopCommands.Enqueue(c);
-            }
-        }
-        public static void Serialize(List<object> items, List<Variable?> variables, Queue<Command> loopCommands)
-        {
-            VisulizeableList<Command> loopList = new VisulizeableList<Command>(loopCommands);
-            items.Add(loopList);
-            variables.Add(null);
-        }
-        public static void AddCurrentCommands(Queue<Command> loopCommands, TreeNode loop, Form1 form)
-        {
-            if (loopCommands != null)
-            {
-                var current = loop;
-                foreach (var c in loopCommands)
-                {
-                    current = Form1.AddCommand(c, current, form);
-                }
-            }
-        }
-        public static void CopyLoopCommands(Queue<Command> originalLoopCommands, ref Queue<Command> newLoopCommands)
-        {
-            if (originalLoopCommands != null)
-            {
-                newLoopCommands = new Queue<Command>();
-                foreach (var c in originalLoopCommands)
-                {
-                    newLoopCommands.Enqueue(c.CompleteCopy());
-                }
-            }
-        }
-    }
-
 }

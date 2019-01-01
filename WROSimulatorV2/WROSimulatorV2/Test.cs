@@ -40,9 +40,9 @@ namespace WROSimulatorV2
             throw new NotImplementedException();
         }
 
-        public override VisulizableItem Copy()
+        public override void CopyTo(VisulizableItem newItem)
         {
-            return CopyItems(this);
+            CopyItems(newItem,this);
         }
 
         public override Command CompleteCopy()
@@ -81,9 +81,9 @@ namespace WROSimulatorV2
         {
             throw new NotImplementedException();
         }
-        public override VisulizableItem Copy()
+        public override void CopyTo(VisulizableItem newItem)
         {
-            return CopyItems(this);
+            CopyItems(newItem, this);
         }
 
         public override Command CompleteCopy()

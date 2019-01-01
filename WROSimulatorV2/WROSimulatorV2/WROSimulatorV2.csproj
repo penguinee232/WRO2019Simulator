@@ -79,7 +79,7 @@
     <Compile Include="DriveByMillis.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="ForLoop.cs" />
+    <Compile Include="ForLoopCommand.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -102,9 +102,12 @@
     <Compile Include="RCM.cs" />
     <Compile Include="Request.cs" />
     <Compile Include="Robot.cs" />
+    <Compile Include="SetVariable.cs" />
+    <Compile Include="SetVariablePhrase.cs" />
     <Compile Include="StructClasses.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="ToRobotLanguageConverter.cs" />
+    <Compile Include="VariableChangeItem.cs" />
     <Compile Include="VariableVisulizeItem.cs" />
     <Compile Include="VisulizableItem.cs" />
     <Compile Include="VisulizeableList.cs" />

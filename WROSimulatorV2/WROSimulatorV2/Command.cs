@@ -39,22 +39,21 @@ namespace WROSimulatorV2
         {
             return Parent == null || Parent.CanAdd(command);
         }
-        public virtual VisulizableItem Copy(Command newItem)
+        public virtual void Copy(Command newItem)
         {
             newItem.Parent = Parent;
             newItem.Name = Name;
             newItem.Form = Form;
             newItem.CommandTreeNode = CommandTreeNode;
-            return CopyItems(newItem, this);
+            CopyItems(newItem, this);
         }
         public virtual bool RepeatCommand(Robot robot)
         {
             return false;
         }
-        public override VisulizableItem Copy()
+        public override void CopyTo(VisulizableItem newItem)
         {
-            Command command = (Command)Extensions.GetDefaultFromConstructor(GetType());
-            return Copy(command);
+            Copy((Command)newItem);
         }
         public abstract Command CompleteCopy();
     }

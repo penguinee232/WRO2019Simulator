@@ -51,7 +51,9 @@ namespace WROSimulatorV2
 
         public override Command CompleteCopy()
         {
-            return (Command)Copy();
+            DriveByMillis driveByMillis = new DriveByMillis();
+            CopyTo(driveByMillis);
+            return driveByMillis;
         }
 
         //public override VisulizableItem Copy()

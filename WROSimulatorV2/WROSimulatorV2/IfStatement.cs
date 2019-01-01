@@ -65,7 +65,7 @@ namespace WROSimulatorV2
                     elseCommands.Enqueue(c.CompleteCopy());
                 }
             }
-            BoolPhrase = (BoolPhrase)original.BoolPhrase.Copy();
+            original.BoolPhrase.CopyTo(BoolPhrase);
             VisulizeItems = new List<IGetSetFunc>()
             {
                 new GetSetFunc<BoolPhrase>((i)=>BoolPhrase, (v,i)=>BoolPhrase = v, "BoolPhrase")
@@ -167,7 +167,7 @@ namespace WROSimulatorV2
             }
         }
 
-        public override VisulizableItem Copy(Command command)
+        public override void Copy(Command command)
         {
             IfStatement item = (IfStatement)command;
             item.Then = Then;
@@ -177,7 +177,7 @@ namespace WROSimulatorV2
             //item.Variable = Variable;
             //item.SetOtherToDefault();
             //item.SetOtherVisItem();
-            return base.Copy(command);
+            base.Copy(command);
         }
 
         public override Command CompleteCopy()

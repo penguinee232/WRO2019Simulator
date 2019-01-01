@@ -12,7 +12,9 @@ namespace WROSimulatorV2
     public partial class Form1 : Form
     {
         public static Dictionary<Type, List<Variable>> VariablesByType;
-        public static Dictionary<Variable, object> VariableValues;
+        static Dictionary<Variable, IGetSetFunc> VariableGetSet;
+        static Dictionary<Variable, object> VariableValues;
+        static Dictionary<Variable, object> VariableInitalValues;
         static Point labelSpaceAmount = new Point(5, 0);
         static Point labelIndextAmount = new Point(25, 5);
         public static int spaceAmount = 10;
@@ -59,46 +61,12 @@ namespace WROSimulatorV2
             standardBackColor = runCommandsTreeView.BackColor;
             Panel = panel1;
 
-            #region Variables
-            VariablesByType = new Dictionary<Type, List<Variable>>();
-            Variable floatVariable1 = new Variable(typeof(float), "floatVariable1");
-            Variable MyVector2Variable1 = new Variable(typeof(MyVector2), "MyVector2Variable1");
-            VariablesByType.Add(typeof(float), new List<Variable>() { floatVariable1, new Variable(typeof(float), "floatVariable2") });
-            VariablesByType.Add(typeof(int), new List<Variable>() { new Variable(typeof(int), "intVariable1"), new Variable(typeof(int), "TestVariable") });
-            VariablesByType.Add(typeof(MyVector2), new List<Variable>() { MyVector2Variable1 });
-            VariablesByType.Add(typeof(VisulizeableList<string>), new List<Variable>() { new Variable(typeof(VisulizeableList<string>), "idk") });
-            VariablesByType.Add(typeof(bool), new List<Variable>() { new Variable(typeof(bool), "BoolVar") });
-            VariableValues = new Dictionary<Variable, object>();
-            foreach (var vt in VariablesByType)
-            {
-                foreach (var v in vt.Value)
-                {
-                    if (!vt.Key.IsClass)
-                    {
-                        VariableValues.Add(v, Extensions.GetDefault(vt.Key));
-                    }
-                    else
-                    {
-                        VariableValues.Add(v, Extensions.GetDefaultFromConstructor(vt.Key));
-                    }
-                }
-                //if (vt.Key.IsClass)
-                //{
-                //    Variable v = new Variable(vt.Key, "null");
-                //    vt.Value.Add(v);
-                //    VariableValues.Add(v, null);
-                //}
-            }
-            VariableValues[floatVariable1] = 3.1415f;
-            VariableValues[MyVector2Variable1] = new MyVector2(4, 2);
-            #endregion
-
             miscControls = new List<Control>() { setVariableButton, unSetVariableButton, commandListBox, addCommandButton, removeCommandButton, runCommandsTreeView, runCommandsButton, setAsStartButton, resetRobotButton, autoResetRobotCheckBox, saveButton, saveAsButton, openFileButton, breakpointButton };
             needAnySelectedRunCommandControls = new List<Control>() { removeCommandButton, breakpointButton };
             needOneSelectedRunCommandControls = new List<Control>() { setVariableButton, unSetVariableButton };
             //needSelectedRunCommandControls = new List<Control>() { setVariableButton, unSetVariableButton, removeCommandButton };
 
-            Commands = new List<Type>() { typeof(DriveByMillis), typeof(MoveMotorByMillis), typeof(IfStatement), typeof(MultiAction), typeof(WhileCommand) };
+            Commands = new List<Type>() { typeof(DriveByMillis), typeof(MoveMotorByMillis), typeof(IfStatement), typeof(MultiAction), typeof(WhileCommand), typeof(SetVariable) };
             foreach (var t in Commands)
             {
                 commandListBox.Items.Add(t.GetTypeName());
@@ -151,8 +119,65 @@ namespace WROSimulatorV2
             rcm = new RCM(robot);
             breakPointedNodes = new HashSet<TreeNode>();
             lastCurrentlyRunningCommands = new HashSet<TreeNode>();
+            InitializeVariables();
             //robot.Update();
             // robot.Draw(robotGfx);
+        }
+
+        public static void InitializeVariables()
+        {
+            VariablesByType = new Dictionary<Type, List<Variable>>();
+
+            Variable floatVariable1 = new Variable(typeof(float), "floatVariable1");
+            Variable MyVector2Variable1 = new Variable(typeof(MyVector2), "MyVector2Variable1");
+            Variable intVariable = new Variable(typeof(int), "intVariable1");
+
+            VariablesByType.Add(typeof(float), new List<Variable>() { floatVariable1 });
+            VariablesByType.Add(typeof(int), new List<Variable>() { intVariable });
+            VariablesByType.Add(typeof(MyVector2), new List<Variable>() { MyVector2Variable1 });
+
+            VariableGetSet = new Dictionary<Variable, IGetSetFunc>();
+            VariableValues = new Dictionary<Variable, object>();
+            VariableInitalValues = new Dictionary<Variable, object>();
+            foreach (var vt in VariablesByType)
+            {
+                foreach (var v in vt.Value)
+                {
+                    object value;
+                    if (vt.Key.IsClass)
+                    {
+                        value = Extensions.GetDefaultFromConstructor(vt.Key);
+                    }
+                    else
+                    {
+                        value = Extensions.GetDefault(vt.Key);
+                    }
+                    VariableValues.Add(v, value);
+                    VariableGetSet.Add(v, new GetSetFunc<object>((i) => VariableValues[v], (val, i) => VariableValues[v] = val, v.Name));
+                    VariableInitalValues.Add(v, value);
+                }
+            }
+        }
+
+        static void ResetVariables()
+        {
+            foreach (var v in VariableInitalValues)
+            {
+                VariableGetSet[v.Key].ObjSet(v.Value, 0);
+            }
+        }
+
+        public static bool VariableExists(Variable variable)
+        {
+            return VariableGetSet.ContainsKey(variable);
+        }
+        public static object GetVariable(Variable variable)
+        {
+            return VariableGetSet[variable].ObjGet(0);
+        }
+        public static void SetVariable(Variable variable, object value)
+        {
+            VariableGetSet[variable].ObjSet(value, 0);
         }
 
         void InitCommands()
@@ -277,8 +302,7 @@ namespace WROSimulatorV2
         {
             UpdateCommandPanel();
         }
-
-        static IGetSetFunc debug;
+        
         public static ControlNode LoadItem(IGetSetFunc item, Point position, ControlNode parent, int index, bool partOfRadioButtonGroup, Form1 form)
         {
             string name = item.ItemInfo.Name;
@@ -288,7 +312,7 @@ namespace WROSimulatorV2
                 List<ControlNode> controls = new List<ControlNode>();
                 VisulizableItem visulizableItem = (VisulizableItem)item.ObjGet(index);
                 var labeledControl = GetLabeledControl(name, panel, item, index, parent, visulizableItem, spaceAmount, partOfRadioButtonGroup, form);
-                
+
                 labeledControl.Location = position;
                 var node = new ControlNode(labeledControl, parent);
                 visulizableItem.ControlNode = node;
@@ -411,7 +435,7 @@ namespace WROSimulatorV2
                                 controls.RemoveAt(i);
                                 controls.Add(node.Children[i].Control);
                                 controls.SetChildIndex(node.Children[i].Control, i);
-                                
+
                                 // node.Control.Controls. = node.Children[i].Control
                             }
                         }
@@ -926,6 +950,7 @@ namespace WROSimulatorV2
             }
             else
             {
+                ResetVariables();
                 breakPointMode = false;
                 runningCommandsMode = false;
                 RunningTreeColoring();

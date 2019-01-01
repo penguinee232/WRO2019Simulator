@@ -26,7 +26,7 @@ namespace WROSimulatorV2
         RightDiveMode,
         AverageMode
     }
-    public enum Operatiors
+    public enum CompareOperatiors
     {
         Equals,
         LessThan,
@@ -34,5 +34,22 @@ namespace WROSimulatorV2
         NotEqual,
         LessThanEqual,
         GreaterThanEqual
+    }
+    public enum SetOperatiors
+    {
+        SetEqual,
+        PlusEqual,
+        MinusEqual,
+        TimesEqual,
+        DivideEqual,
+        ModEqual
+    }
+    public enum MathOperatiors
+    {
+        Add,
+        Subtract,
+        Multiply,
+        Divide,
+        Mod
     }
 }
