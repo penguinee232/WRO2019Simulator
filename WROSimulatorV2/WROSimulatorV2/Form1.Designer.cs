@@ -111,7 +111,7 @@
             // 
             this.runCommandsTreeView.Location = new System.Drawing.Point(413, 0);
             this.runCommandsTreeView.Name = "runCommandsTreeView";
-            this.runCommandsTreeView.Size = new System.Drawing.Size(239, 259);
+            this.runCommandsTreeView.Size = new System.Drawing.Size(239, 264);
             this.runCommandsTreeView.TabIndex = 7;
             this.runCommandsTreeView.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.runCommandsTreeView_AfterSelect);
             this.runCommandsTreeView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.runCommandsTreeView_KeyDown);

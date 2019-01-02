@@ -119,8 +119,11 @@ namespace WROSimulatorV2
             lastCurrentlyRunningCommands = new HashSet<TreeNode>();
             VariablesInfo.InitializeVariables();
             GetVariableTypes();
-            //robot.Update();
-            // robot.Draw(robotGfx);
+
+            runCommandsTreeView.StateImageList = new ImageList();
+            var stateImages = TreeNodeImageGenerator.Init();
+            runCommandsTreeView.StateImageList.Images.AddRange(stateImages.ToArray());
+            //programNode.StateImageIndex = 0;
         }
 
         static void GetVariableTypes()
@@ -847,21 +850,36 @@ namespace WROSimulatorV2
                 node.BackColor = Color.CornflowerBlue;
                 node.ForeColor = Color.White;
             }
-            else if (breakPointedNodes.Contains(node))
-            {
-                node.BackColor = Color.Red;
-                node.ForeColor = Color.White;
-            }
-            else if (node == startProgramNode)
-            {
-                node.BackColor = Color.Green;
-                node.ForeColor = Color.White;
-            }
+            //else if (breakPointedNodes.Contains(node))
+            //{
+            //    node.BackColor = Color.Red;
+            //    node.ForeColor = Color.White;
+            //}
+            //else if (node == startProgramNode)
+            //{
+            //    node.BackColor = Color.Green;
+            //    node.ForeColor = Color.White;
+            //}
             else
             {
                 node.BackColor = standardBackColor;
                 node.ForeColor = Color.Black;
             }
+
+            TreeNodeImageInfo treeNodeImageInfo = new TreeNodeImageInfo(false, false, false);
+            if (runningCommandsMode && currentlyRunnningNodes != null && currentlyRunnningNodes.Contains(node))
+            {
+                treeNodeImageInfo.Running = true;
+            }
+            if (breakPointedNodes.Contains(node))
+            {
+                treeNodeImageInfo.Breakpoint = true;
+            }
+            if (node == startProgramNode)
+            {
+                treeNodeImageInfo.StartPoint = true;
+            }
+            node.StateImageIndex = TreeNodeImageGenerator.StateImageIndexDictionary[treeNodeImageInfo];
         }
 
         bool runningCommandsMode = false;
@@ -1096,6 +1114,7 @@ namespace WROSimulatorV2
                 }
             }
         }
+        
     }
 
 

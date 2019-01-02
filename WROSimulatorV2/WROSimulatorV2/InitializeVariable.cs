@@ -34,6 +34,7 @@ namespace WROSimulatorV2
             }
             VariableTypes = new PossibleListItem(defaultType, objectSet, PossibleVariableChanged);
             SetGetMiddleItems(GetMiddleItems, false);
+            
         }
         protected override void ControlNodeChanged()
         {
@@ -128,6 +129,7 @@ namespace WROSimulatorV2
         {
             InitializeVariablePhrase = new InitializeVariablePhrase();
             SetVisulizeItems();
+            Name = "Test";
         }
         private InitializeVariable(InitializeVariable original)
         {

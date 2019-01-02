@@ -109,6 +109,7 @@
     <Compile Include="StructClasses.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="ToRobotLanguageConverter.cs" />
+    <Compile Include="TreeNodeImageGenerator.cs" />
     <Compile Include="VariableChangeItem.cs" />
     <Compile Include="VariablesInfo.cs" />
     <Compile Include="VariableVisulizeItem.cs" />
@@ -153,6 +154,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\WRO-2018-1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\breakpoint.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\runningArrow.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\startPoint.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
