@@ -654,6 +654,7 @@ namespace WROSimulatorV2
 
 
                 form.CommandsFromTreeNodes.Add(newTreeNode, command);
+                form.runCommandsTreeView.SelectedNode = newTreeNode;
             }
             return newTreeNode;
         }
@@ -677,6 +678,7 @@ namespace WROSimulatorV2
             {
                 if (CommandsFromTreeNodes.ContainsKey(n))
                 {
+                    CommandsFromTreeNodes[n].Remove();
                     CommandsFromTreeNodes.Remove(n);
                     n.Remove();
                     UpdateCommandPanel();

@@ -14,6 +14,28 @@ namespace WROSimulatorV2
     //}
     public abstract class VisulizableItem
     {
+        public virtual void Refresh()
+        {
+            if(VisulizeItems != null)
+            {
+                for(int i = 0;i < VisulizeItems.Count; i++)
+                {
+                    var item = VisulizeItems[i];
+                    if (item.IsVariable)
+                    {
+                        if (!item.Variable.Value.VariableExists())
+                        {
+                            item.Variable = null;
+                        }
+                    }
+                    if(item.ItemInfo.Type.IsSubclassOf(typeof(VisulizableItem)))
+                    {
+                        VisulizableItem visItem = (VisulizableItem)item.ObjGet(i);
+                        visItem.Refresh();
+                    }
+                }
+            }
+        }
         public virtual List<Control> GetManatoryControls(IGetSetFunc getSetFunc, int index)
         {
             return null;
@@ -93,6 +115,7 @@ namespace WROSimulatorV2
         }
         public static void CopyItems(VisulizableItem newItem, VisulizableItem current)
         {
+            current.Refresh();
             CopyItemsR(newItem, current);
         }
 

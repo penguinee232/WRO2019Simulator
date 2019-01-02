@@ -46,9 +46,12 @@ namespace WROSimulatorV2
         void NewVariable(VariableGetSet v)
         {
             Variable = v;
-            label.Text = Variable.ToString();
-            VariableChanged?.Invoke(this, parent);
-            parent.ControlNode.ReLocateChildren(Form1.spaceAmount);
+            if (label != null)
+            {
+                label.Text = Variable.ToString();
+                VariableChanged?.Invoke(this, parent);
+                parent.ControlNode.ReLocateChildren(Form1.spaceAmount);
+            }
         }
 
         public override void CopyTo(VisulizableItem newItem)
@@ -79,7 +82,14 @@ namespace WROSimulatorV2
             var list = DeserializeItems(span);
             Variable = VariablesInfo.GetVariableGetSet(list[0].Variable.Value).Value;
         }
-
+        public override void Refresh()
+        {
+            if (!Variable.VariableExists())
+            {
+                NewVariable(VariableGetSet.Default());
+            }
+            base.Refresh();
+        }
         public bool IsTrue(CompareOperatiors operatior, object other)
         {
             object variableValue = VariablesInfo.GetVariable(Variable.Get());

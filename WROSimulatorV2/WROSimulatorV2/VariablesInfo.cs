@@ -10,23 +10,19 @@ namespace WROSimulatorV2
     public struct VariableGetSet
     {
         public Type Type { get; private set; }
-        Func<int, Variable> get;
-        Action<Variable, int> set;
         public int Index { get; private set; }
-        public VariableGetSet(Func<int, Variable> get, Action<Variable, int> set, Type type, int index)
+        public VariableGetSet(Type type, int index)
         {
             this.Index = index;
-            this.get = get;
-            this.set = set;
             Type = type;
         }
         public Variable Get()
         {
-            return get.Invoke(Index);
+            return VariablesInfo.VariablesByType[Type][Index];
         }
         public void Set(Variable variable)
         {
-            set.Invoke(variable, Index);
+            VariablesInfo.VariablesByType[Type][Index] = variable;
         }
         public static Variable? GetNullableVariable(VariableGetSet? variableGetSet)
         {
@@ -43,6 +39,10 @@ namespace WROSimulatorV2
         public override string ToString()
         {
             return Get().ToString();
+        }
+        public bool VariableExists()
+        {
+            return VariablesInfo.VariablesByType.ContainsKey(Type) && VariablesInfo.VariablesByType[Type].Count > Index;
         }
     }
     public static class VariablesInfo
@@ -87,7 +87,7 @@ namespace WROSimulatorV2
                     VariableValues.Add(v, value);
                     VariableValueGetSet.Add(v, new GetSetFunc<object>((j) => VariableValues[v], (val, j) => VariableValues[v] = val, v.Name));
                     VariableInitalValues.Add(v, value);
-                    VariableGetSet.Add(v, new VariableGetSet((j) => vt.Value[j], (val, j) => vt.Value[j] = val, v.Type, i));
+                    VariableGetSet.Add(v, new VariableGetSet(v.Type, i));
                 }
             }
         }
@@ -119,7 +119,7 @@ namespace WROSimulatorV2
                 VariablesByType[variable.Type].Add(variable);
                 variableByTypeIndex = VariablesByType[variable.Type].Count - 1;
             }
-            var variableGetSet = new VariableGetSet((i) => VariablesByType[variable.Type][i], (val, i) => VariablesByType[variable.Type][i] = val, variable.Type, variableByTypeIndex);
+            var variableGetSet = new VariableGetSet(variable.Type, variableByTypeIndex);
             VariableGetSet.Add(variable, variableGetSet);
             VariableValues.Add(variable, value);
             VariableValueGetSet.Add(variable, new GetSetFunc<object>((i) => VariableValues[variable], (val, i) => VariableValues[variable] = val, variable.Name));

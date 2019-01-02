@@ -13,30 +13,44 @@ namespace WROSimulatorV2
         public string VariableName { get; set; }
         HashSet<TypeNameInfo> variableTypes;
         VariableGetSet variable;
-        bool variableIsNull = true;
+        bool variableIsNull = false;
         TreeNode treeNode;
         public InitializeVariablePhrase()
+            :base()
         {
             VariableName = "a";
             variableTypes = new HashSet<TypeNameInfo>();
             HashSet<object> objectSet = new HashSet<object>();
+            TypeNameInfo defaultType = new TypeNameInfo();
             foreach (var t in Form1.variableTypes)
             {
                 var current = new TypeNameInfo(t);
+                if(t == Variable.Variable.Type)
+                {
+                    defaultType = current;
+                }
                 variableTypes.Add(current);
                 objectSet.Add(current);
             }
-            VariableTypes = new PossibleListItem(objectSet, PossibleVariableChanged);
+            VariableTypes = new PossibleListItem(defaultType, objectSet, PossibleVariableChanged);
             SetGetMiddleItems(GetMiddleItems, false);
+        }
+        protected override void ControlNodeChanged()
+        {
+            if (variableIsNull&& VariableTypes.CurrentPossiblility != null)
+            {
+                PossibleVariableChanged(VariableTypes.CurrentPossiblility, null);
+            }
+            base.ControlNodeChanged();
         }
         public void SetCommandTreeNode(TreeNode treeNode)
         {
             this.treeNode = treeNode;
-
-            if (VariableTypes.CurrentPossiblility != null)
-            {
-                PossibleVariableChanged(VariableTypes.CurrentPossiblility, null);
-            }
+            variableIsNull = true;
+            //if (VariableTypes.CurrentPossiblility != null)
+            //{
+            //    PossibleVariableChanged(VariableTypes.CurrentPossiblility, null);
+            //}
         }
 
         public static List<IGetSetFunc> GetMiddleItems(VariableChangeItem item)
@@ -68,31 +82,41 @@ namespace WROSimulatorV2
 
         public void PossibleVariableChanged(object type, LabeledControl labeledControl)
         {
-            var typeInfo = (TypeNameInfo)type;
-            if (variable.Type != typeInfo.Type || variableIsNull)
+            if (ControlNode != null)
             {
-                if (!variableIsNull)
+                var typeInfo = (TypeNameInfo)type;
+                if (variable.Type != typeInfo.Type || variableIsNull)
                 {
-                    VariablesInfo.RemoveVariable(variable.Get(), false);
+                    if (!variableIsNull)
+                    {
+                        VariablesInfo.RemoveVariable(variable.Get(), false);
+                    }
+                    else
+                    {
+                        variableIsNull = false;
+                    }
+                    SetNewVariable(typeInfo.Type, VariableName);
+                    Variable.Variable = variable;
+                    if (labeledControl != null)
+                    {
+                        labeledControl.ParentNode = VariableChanged(variable, labeledControl.ParentNode);
+                    }
                 }
                 else
                 {
-                    variableIsNull = false;
-                }
-                SetNewVariable(typeInfo.Type, VariableName);
-                Variable.Variable = variable;
-                if (labeledControl != null)
-                {
-                    labeledControl.ParentNode = VariableChanged(variable, labeledControl.ParentNode);
+                    object value = VariablesInfo.GetVariable(variable.Get());
+                    VariablesInfo.RemoveVariable(variable.Get(), true);
+                    variable.Set(new Variable(variable.Type, VariableName));
+                    variable = VariablesInfo.AddVariable(variable.Get(), value, treeNode, variable.Index);
+                    Variable.Variable = variable;
                 }
             }
-            else
+        }
+        public void Remove()
+        {
+            if (!variableIsNull)
             {
-                object value = VariablesInfo.GetVariable(variable.Get());
-                VariablesInfo.RemoveVariable(variable.Get(), true);
-                variable.Set(new Variable(variable.Type, VariableName));
-                variable = VariablesInfo.AddVariable(variable.Get(), value, treeNode, variable.Index);
-                Variable.Variable = variable;
+                VariablesInfo.RemoveVariable(variable.Get(), false);
             }
         }
     }
@@ -112,6 +136,13 @@ namespace WROSimulatorV2
             original.InitializeVariablePhrase.CopyTo(InitializeVariablePhrase);
             SetVisulizeItems();
         }
+
+        public override void Remove()
+        {
+            InitializeVariablePhrase.Remove();
+
+        }
+
         void SetVisulizeItems()
         {
             VisulizeItems = new List<IGetSetFunc>()
@@ -169,6 +200,22 @@ namespace WROSimulatorV2
         public override string ToString()
         {
             return Name;
+        }
+        public static bool operator ==(TypeNameInfo left, TypeNameInfo right)
+        {
+            return left.Type == right.Type;
+        }
+        public static bool operator !=(TypeNameInfo left, TypeNameInfo right)
+        {
+            return !(left.Type == right.Type);
+        }
+        public override bool Equals(object obj)
+        {
+            if(obj.GetType() == GetType())
+            {
+                return this == (TypeNameInfo)obj;
+            }
+            return false;
         }
     }
 }

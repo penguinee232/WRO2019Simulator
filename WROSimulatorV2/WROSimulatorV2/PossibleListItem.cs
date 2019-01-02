@@ -13,13 +13,15 @@ namespace WROSimulatorV2
         public object CurrentPossiblility;
         HashSet<object> possibilities;
         Action<object, LabeledControl> currentPossiblilityChanged;
+        object defaultPossibility;
         public PossibleListItem()
-            : this(null, null)
+            : this(null,null, null)
         {
 
         }
-        public PossibleListItem(HashSet<object> possibilities, Action<object, LabeledControl> currentPossiblilityChanged)
+        public PossibleListItem(object defaultPossibility, HashSet<object> possibilities, Action<object, LabeledControl> currentPossiblilityChanged)
         {
+            this.defaultPossibility = defaultPossibility;
             this.currentPossiblilityChanged = currentPossiblilityChanged;
             this.possibilities = possibilities;
             SetDefaultCurrentPossiblility();
@@ -30,9 +32,13 @@ namespace WROSimulatorV2
             {
                 CurrentPossiblility = null;
             }
-            else
+            else if(defaultPossibility == null)
             {
                 CurrentPossiblility = possibilities.First();
+            }
+            else
+            {
+                CurrentPossiblility = defaultPossibility;
             }
         }
         public ControlNode GetControlNode(string name, IGetSetFunc item, Point position, bool partOfRadioButtonGroup, Form1 form, ControlNode parent)
@@ -43,7 +49,7 @@ namespace WROSimulatorV2
             int index = 0;
             foreach (var v in possibilities)
             {
-                if(v==CurrentPossiblility)
+                if(v.Equals(CurrentPossiblility))
                 {
                     selectedIndex = index;
                 }

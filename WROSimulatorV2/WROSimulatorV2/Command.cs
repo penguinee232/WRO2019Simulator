@@ -18,6 +18,10 @@ namespace WROSimulatorV2
             CommandTreeNode = null;
             Name = GetType().GetTypeName();
         }
+        public virtual void Remove()
+        {
+
+        }
         public override string ToString()
         {
             return Name;

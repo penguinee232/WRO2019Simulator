@@ -30,6 +30,11 @@ namespace WROSimulatorV2
             SetVisulizeItems();
         }
 
+        public override void Refresh()
+        {
+            Variable.Refresh();
+            base.Refresh();
+        }
         //private VariableChangeItem(VariableChangeItem other)
         //{
         //    getMiddleItems = other.getMiddleItems;
@@ -63,6 +68,7 @@ namespace WROSimulatorV2
             VisulizeItems.Add(new GetSetFunc<object>((i) => Other, (v, i) => Other = v, "Operatior"));
 
             SetOtherVisItem();
+            SetOtherToDefault();
             Init(false);
         }
         public ControlNode VariableChanged(VariableGetSet variable, ControlNode node)

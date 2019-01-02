@@ -159,6 +159,11 @@ namespace WROSimulatorV2
         }
         public void SetSize()
         {
+            if (GetSetFunc.ItemInfo.Type.IsSubclassOf(typeof(VisulizableItem)))
+            {
+                VisulizableItem visItem = (VisulizableItem)GetSetFunc.ObjGet(Index);
+                visItem.Refresh();
+            }
             if (GetSetFunc.IsVariable)
             {
                 Control.Visible = false;
@@ -181,7 +186,6 @@ namespace WROSimulatorV2
                 }
                 VariableLabel = null;
                 Control.Visible = OpenToggle;
-
             }
             HashSet<Control> variableControls = new HashSet<Control>() { radioButton, Label, VariableLabel };
             HashSet<Control> alwaysShownControls = new HashSet<Control>() { radioButton, checkBox, Label, VariableLabel };
