@@ -11,7 +11,7 @@ namespace WROSimulatorV2
         public SetOperatiors Operatior { get; set; }
         public SetVariablePhrase()
         {
-            SetGetMiddleItems(GetMiddleItems);
+            SetGetMiddleItems(GetMiddleItems, true);
         }
         public static List<IGetSetFunc> GetMiddleItems(VariableChangeItem item)
         {
@@ -38,14 +38,14 @@ namespace WROSimulatorV2
             object newVarialbeValue;
             if (math != null)
             {
-                object variableValue = Form1.GetVariable(Variable.Variable);
+                object variableValue = VariablesInfo.GetVariable(Variable.Variable.Get());
                 newVarialbeValue = Extensions.UseMathOnObject(variableValue, math.Value, Other);
             }
             else
             {
                 newVarialbeValue = Other;
             }
-            Form1.SetVariable(Variable.Variable, newVarialbeValue);
+            VariablesInfo.SetVariable(Variable.Variable.Get(), newVarialbeValue);
         }
     }
 }

@@ -71,7 +71,7 @@ namespace WROSimulatorV2
                 IGetSetFunc getSet = item.VisulizeItems[i];
                 if (getSet.IsVariable)
                 {
-                    getSet.ObjSet(Form1.GetVariable(getSet.Variable.Value), i);
+                    getSet.ObjSet(VariablesInfo.GetVariable(getSet.Variable.Value.Get()), i);
                 }
                 else if (getSet.ItemInfo.Type.IsSubclassOf(typeof(VisulizableItem)))
                 {
@@ -146,7 +146,7 @@ namespace WROSimulatorV2
                 //{
                 VisulizeItems[i].ObjSet(list[i].Value, i);
                 //}
-                VisulizeItems[i].Variable = list[i].Variable;
+                VisulizeItems[i].Variable = VariablesInfo.GetVariableGetSet(list[i].Variable);
             }
         }
         protected class PreGetSetFuncInfo
@@ -296,7 +296,7 @@ namespace WROSimulatorV2
             for (int i = 0; i < VisulizeItems.Count; i++)
             {
                 items.Add(VisulizeItems[i].ObjGet(i));
-                variables.Add(VisulizeItems[i].Variable);
+                variables.Add(VariableGetSet.GetNullableVariable(VisulizeItems[i].Variable));
             }
             return Serialize(this, items, variables);
         }
@@ -376,7 +376,7 @@ namespace WROSimulatorV2
         void ObjSet(object value, int index);
         ItemInfo ItemInfo { get; set; }
         List<Control> Controls { get; set; }
-        Variable? Variable { get; set; }
+        VariableGetSet? Variable { get; set; }
         bool IsVariable { get; }
         void CopyBasicInfo(IGetSetFunc newFunc);
         bool IsValidItem(object item);
@@ -387,7 +387,7 @@ namespace WROSimulatorV2
         public Func<int, T> Get;
         public Action<T, int> Set;
         public List<Control> Controls { get; set; }
-        public Variable? Variable { get; set; }
+        public VariableGetSet? Variable { get; set; }
         public bool IsVariable { get { return Variable != null; } }
         public Func<T, bool> IsValidItemFunc { get; set; }
         public GetSetFunc(Func<int, T> get, Action<T, int> set, string name, List<Control> controls = null, Func<T, bool> isValidItemFunc = null)

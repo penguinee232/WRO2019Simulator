@@ -26,7 +26,7 @@ namespace WROSimulatorV2
         public static readonly int CheckBoxSpace = 0;
         public RadioButtonGroup RadioButtonGroup = null;
         public Form1 Form;
-        public Variable? PossibleVariable = null;
+        public VariableGetSet? PossibleVariable = null;
         RadioButton radioButton = null;
         List<Control> precedingControls;
         public Label VariableLabel = null;

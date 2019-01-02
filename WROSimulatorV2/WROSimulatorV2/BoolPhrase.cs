@@ -11,7 +11,7 @@ namespace WROSimulatorV2
         public CompareOperatiors Operatior { get; set; }
         public BoolPhrase()
         {
-            SetGetMiddleItems(GetMiddleItems);
+            SetGetMiddleItems(GetMiddleItems, true);
         }
         public static List<IGetSetFunc> GetMiddleItems(VariableChangeItem item)
         {

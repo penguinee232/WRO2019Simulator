@@ -85,7 +85,7 @@ namespace WROSimulatorV2
             for (int i = 0; i < VisulizeItems.Count; i++)
             {
                 items.Add(VisulizeItems[i].ObjGet(i));
-                variables.Add(VisulizeItems[i].Variable);
+                variables.Add(VariableGetSet.GetNullableVariable(VisulizeItems[i].Variable));
             }
 
             StoreContainedCommands(Form);
@@ -98,7 +98,7 @@ namespace WROSimulatorV2
             for (int i = 0; i < VisulizeItems.Count; i++)
             {
                 VisulizeItems[i].ObjSet(list[i].Value, i);
-                VisulizeItems[i].Variable = list[i].Variable;
+                VisulizeItems[i].Variable = VariablesInfo.GetVariableGetSet(list[i].Variable);
             }
             LoopFunctions.Deserialize((VisulizeableList<Command>)list[VisulizeItems.Count].Value, ref loopCommands);
 

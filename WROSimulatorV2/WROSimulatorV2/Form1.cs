@@ -11,10 +11,7 @@ namespace WROSimulatorV2
 {
     public partial class Form1 : Form
     {
-        public static Dictionary<Type, List<Variable>> VariablesByType;
-        static Dictionary<Variable, IGetSetFunc> VariableGetSet;
-        static Dictionary<Variable, object> VariableValues;
-        static Dictionary<Variable, object> VariableInitalValues;
+
         static Point labelSpaceAmount = new Point(5, 0);
         static Point labelIndextAmount = new Point(25, 5);
         public static int spaceAmount = 10;
@@ -53,6 +50,7 @@ namespace WROSimulatorV2
         static Form1 debugForm;
         string currentFile = null;
         HashSet<TreeNode> breakPointedNodes;
+        public static HashSet<Type> variableTypes;
         public Form1()
         {
             InitializeComponent();
@@ -66,7 +64,7 @@ namespace WROSimulatorV2
             needOneSelectedRunCommandControls = new List<Control>() { setVariableButton, unSetVariableButton };
             //needSelectedRunCommandControls = new List<Control>() { setVariableButton, unSetVariableButton, removeCommandButton };
 
-            Commands = new List<Type>() { typeof(DriveByMillis), typeof(MoveMotorByMillis), typeof(IfStatement), typeof(MultiAction), typeof(WhileCommand), typeof(SetVariable) };
+            Commands = new List<Type>() { typeof(DriveByMillis), typeof(MoveMotorByMillis), typeof(IfStatement), typeof(MultiAction), typeof(WhileCommand), typeof(SetVariable), typeof(InitializeVariable) };
             foreach (var t in Commands)
             {
                 commandListBox.Items.Add(t.GetTypeName());
@@ -119,65 +117,39 @@ namespace WROSimulatorV2
             rcm = new RCM(robot);
             breakPointedNodes = new HashSet<TreeNode>();
             lastCurrentlyRunningCommands = new HashSet<TreeNode>();
-            InitializeVariables();
+            VariablesInfo.InitializeVariables();
+            GetVariableTypes();
             //robot.Update();
             // robot.Draw(robotGfx);
         }
 
-        public static void InitializeVariables()
+        static void GetVariableTypes()
         {
-            VariablesByType = new Dictionary<Type, List<Variable>>();
-
-            Variable floatVariable1 = new Variable(typeof(float), "floatVariable1");
-            Variable MyVector2Variable1 = new Variable(typeof(MyVector2), "MyVector2Variable1");
-            Variable intVariable = new Variable(typeof(int), "intVariable1");
-
-            VariablesByType.Add(typeof(float), new List<Variable>() { floatVariable1 });
-            VariablesByType.Add(typeof(int), new List<Variable>() { intVariable });
-            VariablesByType.Add(typeof(MyVector2), new List<Variable>() { MyVector2Variable1 });
-
-            VariableGetSet = new Dictionary<Variable, IGetSetFunc>();
-            VariableValues = new Dictionary<Variable, object>();
-            VariableInitalValues = new Dictionary<Variable, object>();
-            foreach (var vt in VariablesByType)
+            variableTypes = new HashSet<Type>();
+            foreach (var vt in VariablesInfo.VariablesByType)
             {
-                foreach (var v in vt.Value)
+                variableTypes.Add(vt.Key);
+            }
+            foreach (var c in Commands)
+            {
+                Command command = (Command)Extensions.GetDefaultFromConstructor(c);
+                GetVariableTypesR(command);
+            }
+        }
+        static void GetVariableTypesR(VisulizableItem item)
+        {
+            for (int i = 0; i < item.VisulizeItems.Count; i++)
+            {
+                var newItem = item.VisulizeItems[i];
+                if (!variableTypes.Contains(newItem.ItemInfo.Type))
                 {
-                    object value;
-                    if (vt.Key.IsClass)
+                    variableTypes.Add(newItem.ItemInfo.Type);
+                    if (newItem.ItemInfo.Type.IsSubclassOf(typeof(VisulizableItem)))
                     {
-                        value = Extensions.GetDefaultFromConstructor(vt.Key);
+                        GetVariableTypesR((VisulizableItem)newItem.ObjGet(i));
                     }
-                    else
-                    {
-                        value = Extensions.GetDefault(vt.Key);
-                    }
-                    VariableValues.Add(v, value);
-                    VariableGetSet.Add(v, new GetSetFunc<object>((i) => VariableValues[v], (val, i) => VariableValues[v] = val, v.Name));
-                    VariableInitalValues.Add(v, value);
                 }
             }
-        }
-
-        static void ResetVariables()
-        {
-            foreach (var v in VariableInitalValues)
-            {
-                VariableGetSet[v.Key].ObjSet(v.Value, 0);
-            }
-        }
-
-        public static bool VariableExists(Variable variable)
-        {
-            return VariableGetSet.ContainsKey(variable);
-        }
-        public static object GetVariable(Variable variable)
-        {
-            return VariableGetSet[variable].ObjGet(0);
-        }
-        public static void SetVariable(Variable variable, object value)
-        {
-            VariableGetSet[variable].ObjSet(value, 0);
         }
 
         void InitCommands()
@@ -302,7 +274,7 @@ namespace WROSimulatorV2
         {
             UpdateCommandPanel();
         }
-        
+
         public static ControlNode LoadItem(IGetSetFunc item, Point position, ControlNode parent, int index, bool partOfRadioButtonGroup, Form1 form)
         {
             string name = item.ItemInfo.Name;
@@ -336,7 +308,12 @@ namespace WROSimulatorV2
             }
             else
             {
-                if (item.ItemInfo.Type.IsEnum)
+                if (item.ItemInfo.Type == typeof(PossibleListItem))
+                {
+                    PossibleListItem possibleListItem = (PossibleListItem)item.ObjGet(index);
+                    return possibleListItem.GetControlNode(name, item, position, partOfRadioButtonGroup, form, parent);
+                }
+                else if (item.ItemInfo.Type.IsEnum)
                 {
                     ComboBox comboBox = new ComboBox();
 
@@ -446,7 +423,10 @@ namespace WROSimulatorV2
             }
             else
             {
-                if (node.Control.Control.GetType() == typeof(Panel))
+                if (item.ItemInfo.Type == typeof(PossibleListItem))
+                {
+                }
+                else if (node.Control.Control.GetType() == typeof(Panel))
                 {
                     node = LoadItem(item, new Point(0, 0), node.Parent, index, node.Parent == null ? false : node.Parent.Control.RadioButtonGroup != null, form);
                     node.ReLocateChildren(spaceAmount);
@@ -512,7 +492,7 @@ namespace WROSimulatorV2
 
         }
 
-        static LabeledControl GetLabeledControl(string name, Control control, IGetSetFunc getSetFunc, int index, ControlNode parentNode, VisulizableItem visulizableItem, int spaceAmount, bool partOfRadioButtonGroup, Form1 form)
+        public static LabeledControl GetLabeledControl(string name, Control control, IGetSetFunc getSetFunc, int index, ControlNode parentNode, VisulizableItem visulizableItem, int spaceAmount, bool partOfRadioButtonGroup, Form1 form)
         {
             bool isVisulizableItem = visulizableItem != null && visulizableItem.VisulizeItems.Count > 0;
             LabeledControl labeledControl = new LabeledControl(name + " (" + getSetFunc.ItemInfo.Type.GetTypeName() + ")" + ":", control, GetIndentAmount(visulizableItem), getSetFunc, index, parentNode, isVisulizableItem, spaceAmount, form);
@@ -549,9 +529,9 @@ namespace WROSimulatorV2
             }
         }
 
-        public void ShowChooseVariableForm(Action<Variable> doneAction)
+        public void ShowChooseVariableForm(Action<VariableGetSet> doneAction)
         {
-            ChooseVariableForm chooseVariableForm = new ChooseVariableForm(this, doneAction);
+            ChooseVariableForm chooseVariableForm = new ChooseVariableForm(this, doneAction, CurrentTreeNode);
             chooseVariableForm.Show();
             this.Hide();
         }
@@ -560,7 +540,7 @@ namespace WROSimulatorV2
         public void StopSetVariableMode()
         {
             OnSetVariableMode = false;
-            ApplyToControlNodes(root, (c, o) => ControlSetVariableStuff(c, false, (Type)o, new Variable()), null);
+            ApplyToControlNodes(root, (c, o) => ControlSetVariableStuff(c, false, (Type)o, null), null);
             if (unSet)
             {
                 unSetVariableButton.Text = "Un Set Variable";
@@ -571,14 +551,14 @@ namespace WROSimulatorV2
             }
             EnableMiscControls(true, null);
         }
-        public void SetVariable(Variable variable)
+        public void SetVariable(VariableGetSet variable)
         {
             setVariableButton.Text = "Cancel Variable";
             OnSetVariableMode = true;
             unSet = false;
 
             EnableMiscControls(false, setVariableButton);
-            ApplyToControlNodes(root, (c, o) => ControlSetVariableStuff(c, true, (Type)o, variable), variable.Type);
+            ApplyToControlNodes(root, (c, o) => ControlSetVariableStuff(c, true, (Type)o, variable), variable.Get().Type);
         }
         public void UnSetVariable()
         {
@@ -589,7 +569,7 @@ namespace WROSimulatorV2
             EnableMiscControls(false, unSetVariableButton);
             ApplyToControlNodes(root, (c, o) => ControlSetVariableStuff(c, true, (Type)o, null), null);
         }
-        void ControlSetVariableStuff(ControlNode c, bool setVariable, Type t, Variable? v)
+        void ControlSetVariableStuff(ControlNode c, bool setVariable, Type t, VariableGetSet? v)
         {
             if (setVariable)
             {
@@ -950,7 +930,7 @@ namespace WROSimulatorV2
             }
             else
             {
-                ResetVariables();
+                VariablesInfo.ResetVariables();
                 breakPointMode = false;
                 runningCommandsMode = false;
                 RunningTreeColoring();

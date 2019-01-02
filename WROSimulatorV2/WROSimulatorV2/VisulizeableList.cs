@@ -213,7 +213,7 @@ namespace WROSimulatorV2
             SetVisItems();
             for (int i = 0; i < newList.Count; i++)
             {
-                VisulizeItems[i].Variable = newList[i].Variable;
+                VisulizeItems[i].Variable = VariablesInfo.GetVariableGetSet(newList[i].Variable);
             }
         }
 

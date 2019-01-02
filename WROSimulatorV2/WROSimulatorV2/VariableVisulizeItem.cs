@@ -9,14 +9,14 @@ namespace WROSimulatorV2
 {
     public class VariableVisulizeItem : VisulizableItem
     {
-        public Variable Variable;
+        public VariableGetSet Variable;
         Label label;
         public Action<VariableVisulizeItem, LabeledControl> VariableChanged { get; set; }
         LabeledControl parent;
         public VariableVisulizeItem()
         {
             VariableChanged = null;
-            Variable = Variable.Default();
+            Variable = VariableGetSet.Default();
             VisulizeItems = new List<IGetSetFunc>();
             Init(false);
         }
@@ -38,12 +38,12 @@ namespace WROSimulatorV2
             parent = (LabeledControl)control.Parent;
             parent.Form.ShowChooseVariableForm(NewVariable);
         }
-        public void SetVariable(Variable v)
+        public void SetVariable(VariableGetSet v)
         {
             Variable = v;
             label.Text = Variable.ToString();
         }
-        void NewVariable(Variable v)
+        void NewVariable(VariableGetSet v)
         {
             Variable = v;
             label.Text = Variable.ToString();
@@ -72,17 +72,17 @@ namespace WROSimulatorV2
         }
         public override string Serialize()
         {
-            return VisulizableItem.SerializeType(GetType()) + "{" + Variable.Serialize() + "}";
+            return VisulizableItem.SerializeType(GetType()) + "{" + Variable.Get().Serialize() + "}";
         }
         protected override void Deserialize(Span<char> span)
         {
             var list = DeserializeItems(span);
-            Variable = list[0].Variable.Value;
+            Variable = VariablesInfo.GetVariableGetSet(list[0].Variable.Value).Value;
         }
 
         public bool IsTrue(CompareOperatiors operatior, object other)
         {
-            object variableValue = Form1.GetVariable(Variable);
+            object variableValue = VariablesInfo.GetVariable(Variable.Get());
             switch (operatior)
             {
                 case (CompareOperatiors.Equals):

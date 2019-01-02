@@ -14,16 +14,17 @@ namespace WROSimulatorV2
         public object Other { get; set; }
         int otherIndex = 1;
         Func<VariableChangeItem, List<IGetSetFunc>> getMiddleItems;
+        bool haveVariableButton = false;
         public VariableChangeItem()
         {
             Variable = new VariableVisulizeItem();
             Variable.VariableChanged = VariableChanged;
-            otherIndex = 1;
-            SetOtherToDefault();
             SetVisulizeItems();
+            SetOtherToDefault();
         }
-        public void SetGetMiddleItems(Func<VariableChangeItem, List<IGetSetFunc>> getMiddleItems)
+        public void SetGetMiddleItems(Func<VariableChangeItem, List<IGetSetFunc>> getMiddleItems, bool haveVariableButton)
         {
+            this.haveVariableButton = haveVariableButton;
             this.getMiddleItems = getMiddleItems;
             MiddleItems = getMiddleItems.Invoke(this);
             SetVisulizeItems();
@@ -47,10 +48,12 @@ namespace WROSimulatorV2
         //}
         void SetVisulizeItems()
         {
-            VisulizeItems = new List<IGetSetFunc>()
+            VisulizeItems = new List<IGetSetFunc>();
+
+            if (haveVariableButton)
             {
-                new GetSetFunc<VariableVisulizeItem>((i)=>Variable, (v,i)=>Variable.SetVariable(v.Variable), "Variable")
-            };
+                VisulizeItems.Add(new GetSetFunc<VariableVisulizeItem>((i) => Variable, (v, i) => Variable.SetVariable(v.Variable), "Variable"));
+            }
             if (MiddleItems != null)
             {
                 VisulizeItems.AddRange(MiddleItems);
@@ -62,20 +65,24 @@ namespace WROSimulatorV2
             SetOtherVisItem();
             Init(false);
         }
-        void VariableChanged(VariableVisulizeItem item, LabeledControl labeledControl)
+        public ControlNode VariableChanged(VariableGetSet variable, ControlNode node)
         {
-            if (Other.GetType() != item.Variable.Type)
+            if (Other.GetType() != variable.Get().Type)
             {
                 SetOtherToDefault();
                 SetOtherVisItem();
 
                 IndexInit(otherIndex, true);
-
-                var node = labeledControl.ParentNode;
                 Form1.UpdateItem(ref node, node.Control.GetSetFunc, node.Control.Index, node.Control.Form);
-                labeledControl.ParentNode = node;
             }
+            return node;
         }
+        void VariableChanged(VariableVisulizeItem item, LabeledControl labeledControl)
+        {
+            labeledControl.ParentNode = VariableChanged(item.Variable, labeledControl.ParentNode);
+        }
+
+
         void SetOtherVisItem()
         {
             VisulizeItems[otherIndex].ItemInfo = new ItemInfo(Variable.Variable.Type, VisulizeItems[otherIndex].ItemInfo.Name);
@@ -116,7 +123,7 @@ namespace WROSimulatorV2
             for (int i = 0; i < VisulizeItems.Count; i++)
             {
                 VisulizeItems[i].ObjSet(list[i].Value, i);
-                VisulizeItems[i].Variable = list[i].Variable;
+                VisulizeItems[i].Variable = VariablesInfo.GetVariableGetSet(list[i].Variable);
             }
             SetOtherVisItem();
             IndexInit(otherIndex, true);

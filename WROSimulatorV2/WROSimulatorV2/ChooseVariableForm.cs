@@ -14,14 +14,16 @@ namespace WROSimulatorV2
     {
         List<Type> variableTypes;
         Form1 previousForm;
-        Action<Variable> doneAction;
-        public ChooseVariableForm(Form1 form, Action<Variable> doneAction)
+        Action<VariableGetSet> doneAction;
+        Dictionary<Type, List<Variable>> variables;
+        public ChooseVariableForm(Form1 form, Action<VariableGetSet> doneAction, TreeNode currentTreeNode)
         {
             InitializeComponent();
             this.doneAction = doneAction;
             previousForm = form;
-            variableTypes = new List<Type>(); 
-            foreach (var t in Form1.VariablesByType)
+            variableTypes = new List<Type>();
+            variables = VariablesInfo.GetVariables(currentTreeNode);
+            foreach (var t in variables)
             {
                 variableTypesListBox.Items.Add(t.Key.GetTypeName());
                 variableTypes.Add(t.Key);
@@ -33,7 +35,7 @@ namespace WROSimulatorV2
         {
             variableNamesListBox.Items.Clear();
             Type current = variableTypes[variableTypesListBox.SelectedIndex];
-            foreach(var v in Form1.VariablesByType[current])
+            foreach(var v in variables[current])
             {
                 variableNamesListBox.Items.Add(v.Name);
             }
@@ -49,7 +51,7 @@ namespace WROSimulatorV2
         {
             Type current = variableTypes[variableTypesListBox.SelectedIndex];
             previousForm.Show();
-            doneAction?.Invoke(Form1.VariablesByType[current][variableNamesListBox.SelectedIndex]);
+            doneAction?.Invoke(VariablesInfo.VariableGetSet[variables[current][variableNamesListBox.SelectedIndex]]);
             //previousForm.SetVariable(Form1.VariablesByType[current][variableNamesListBox.SelectedIndex]);
             Close();
         }
