@@ -14,11 +14,19 @@ namespace WROSimulatorV2
     {
         List<Type> variableTypes;
         Form1 previousForm;
-        Action<VariableGetSet> doneAction;
-        Dictionary<Type, List<Variable>> variables;
-        public ChooseVariableForm(Form1 form, Action<VariableGetSet> doneAction, TreeNode currentTreeNode)
+        Action<IVariableGetSet> doneAction;
+        Dictionary<Type, List<IVariableGetSet>> variables;
+        int spaceAmount;
+        Dictionary<ListBox, (int, IVariableGetSet)> listBoxIndexesAndParents;
+        List<ListBox> variableListBoxes;
+        IVariableGetSet currentVariable = null;
+        public ChooseVariableForm(Form1 form, Action<IVariableGetSet> doneAction, TreeNode currentTreeNode)
         {
             InitializeComponent();
+            currentVariable = null;
+            variableListBoxes = new List<ListBox>() { variableNamesListBox };
+            listBoxIndexesAndParents = new Dictionary<ListBox, (int, IVariableGetSet)>();
+            listBoxIndexesAndParents.Add(variableNamesListBox, (0,null));
             this.doneAction = doneAction;
             previousForm = form;
             variableTypes = new List<Type>();
@@ -29,6 +37,7 @@ namespace WROSimulatorV2
                 variableTypes.Add(t.Key);
             }
             variableTypesListBox.SelectedIndex = 0;
+            spaceAmount = variableNamesListBox.Left - variableTypesListBox.Right;
         }
 
         private void variableTypesListBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -37,21 +46,51 @@ namespace WROSimulatorV2
             Type current = variableTypes[variableTypesListBox.SelectedIndex];
             foreach(var v in variables[current])
             {
-                variableNamesListBox.Items.Add(v.Name);
+                variableNamesListBox.Items.Add(v.ToString());
             }
             variableNamesListBox.SelectedIndex = 0;
         }
 
-        private void variableNamesListBox_SelectedIndexChanged(object sender, EventArgs e)
+        private void variableListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-
+            ListBox currentListBox = (ListBox)sender;
+            var listBoxInfo = listBoxIndexesAndParents[currentListBox];
+            Type current = variableTypes[variableTypesListBox.SelectedIndex];
+            if (listBoxInfo.Item2 == null)
+            {
+                currentVariable = variables[current][currentListBox.SelectedIndex];
+            }
+            else
+            {
+                currentVariable = VariablesInfo.VariableGetSet[listBoxInfo.Item2.Children[currentListBox.SelectedIndex]];
+            }
+            for(int i = variableListBoxes.Count - 1; i > listBoxInfo.Item1; i--)
+            {
+                panel1.Controls.Remove(variableListBoxes[i]);
+                listBoxIndexesAndParents.Remove(variableListBoxes[i]);
+                variableListBoxes.RemoveAt(i);
+            }
+            if(currentVariable.Children != null && currentVariable.Children.Count > 0)
+            {
+                ListBox newListBox = new ListBox();
+                newListBox.Size = variableNamesListBox.Size;
+                ListBox lastListBox = variableListBoxes[variableListBoxes.Count - 1];
+                newListBox.Location = new Point(lastListBox.Right + spaceAmount, lastListBox.Location.Y);
+                for(int i = 0; i < currentVariable.Children.Count; i++)
+                {
+                    newListBox.Items.Add(currentVariable.Children[i].Name);
+                }
+                panel1.Controls.Add(newListBox);
+                listBoxIndexesAndParents.Add(newListBox, (variableListBoxes.Count, currentVariable));
+                variableListBoxes.Add(newListBox);
+                newListBox.SelectedIndexChanged += variableListBox_SelectedIndexChanged;
+            }
         }
 
         private void chooseVariableButton_Click(object sender, EventArgs e)
         {
-            Type current = variableTypes[variableTypesListBox.SelectedIndex];
             previousForm.Show();
-            doneAction?.Invoke(VariablesInfo.VariableGetSet[variables[current][variableNamesListBox.SelectedIndex]]);
+            doneAction?.Invoke(currentVariable);
             //previousForm.SetVariable(Form1.VariablesByType[current][variableNamesListBox.SelectedIndex]);
             Close();
         }

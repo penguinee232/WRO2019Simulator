@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -51,6 +52,8 @@ namespace WROSimulatorV2
         string currentFile = null;
         HashSet<TreeNode> breakPointedNodes;
         public static HashSet<Type> variableTypes;
+
+        Stopwatch stopWatch;
         public Form1()
         {
             InitializeComponent();
@@ -123,6 +126,8 @@ namespace WROSimulatorV2
             runCommandsTreeView.StateImageList = new ImageList();
             var stateImages = TreeNodeImageGenerator.Init();
             runCommandsTreeView.StateImageList.Images.AddRange(stateImages.ToArray());
+            stopWatch = new Stopwatch();
+            stopWatch.Reset();
             //programNode.StateImageIndex = 0;
         }
 
@@ -181,6 +186,7 @@ namespace WROSimulatorV2
         bool breakPointMode = false;
         private void timer1_Tick(object sender, EventArgs e)
         {
+            long elapsedMillis = stopWatch.ElapsedMilliseconds;
             //string serialize = CommandsFromTreeNodes[programNode.FirstNode].Serialize();
             if (runningCommandsMode && !pauseMode)
             {
@@ -209,11 +215,12 @@ namespace WROSimulatorV2
                     }
                 }
             }
-            robot.Update();
+            robot.Update(elapsedMillis);
             robotGfx.Clear(Color.Transparent);
             robot.Draw(robotGfx);
             robotCanvas.Image = robotDrawArea;
             possibleCanvas.Image = possibleCanvasDrawArea;
+            stopWatch.Restart();
         }
         HashSet<TreeNode> currentlyRunnningNodes;
         TreeNode lastRunningTreeNode = null;
@@ -532,7 +539,7 @@ namespace WROSimulatorV2
             }
         }
 
-        public void ShowChooseVariableForm(Action<VariableGetSet> doneAction)
+        public void ShowChooseVariableForm(Action<IVariableGetSet> doneAction)
         {
             ChooseVariableForm chooseVariableForm = new ChooseVariableForm(this, doneAction, CurrentTreeNode);
             chooseVariableForm.Show();
@@ -554,7 +561,7 @@ namespace WROSimulatorV2
             }
             EnableMiscControls(true, null);
         }
-        public void SetVariable(VariableGetSet variable)
+        public void SetVariable(IVariableGetSet variable)
         {
             setVariableButton.Text = "Cancel Variable";
             OnSetVariableMode = true;
@@ -572,7 +579,7 @@ namespace WROSimulatorV2
             EnableMiscControls(false, unSetVariableButton);
             ApplyToControlNodes(root, (c, o) => ControlSetVariableStuff(c, true, (Type)o, null), null);
         }
-        void ControlSetVariableStuff(ControlNode c, bool setVariable, Type t, VariableGetSet? v)
+        void ControlSetVariableStuff(ControlNode c, bool setVariable, Type t, IVariableGetSet v)
         {
             if (setVariable)
             {

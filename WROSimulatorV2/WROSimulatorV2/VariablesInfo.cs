@@ -7,52 +7,36 @@ using System.Windows.Forms;
 
 namespace WROSimulatorV2
 {
-    public struct VariableGetSet
+    public struct VariableValueGetSet
     {
-        public Type Type { get; private set; }
-        public int Index { get; private set; }
-        public VariableGetSet(Type type, int index)
+        public ItemInfo ItemInfo { get; set; }
+        public Func<object, object> Get;
+        public Action<object, object> Set;
+        public object Info { get; set; }
+        public VariableValueGetSet(Func<object, object> get, Action<object, object> set, string name, Type type, object info)
         {
-            this.Index = index;
-            Type = type;
+            ItemInfo = new ItemInfo(type, name);
+            Get = get;
+            Set = set;
+            Info = info;
         }
-        public Variable Get()
+        public object GetVal()
         {
-            return VariablesInfo.VariablesByType[Type][Index];
+            return Get.Invoke(Info);
         }
-        public void Set(Variable variable)
+        public void SetVal(object val)
         {
-            VariablesInfo.VariablesByType[Type][Index] = variable;
-        }
-        public static Variable? GetNullableVariable(VariableGetSet? variableGetSet)
-        {
-            if (variableGetSet == null)
-            {
-                return null;
-            }
-            return variableGetSet.Value.Get();
-        }
-        public static VariableGetSet Default()
-        {
-            return VariablesInfo.VariableGetSet[Variable.Default()];
-        }
-        public override string ToString()
-        {
-            return Get().ToString();
-        }
-        public bool VariableExists()
-        {
-            return VariablesInfo.VariablesByType.ContainsKey(Type) && VariablesInfo.VariablesByType[Type].Count > Index;
+            Set.Invoke(val, Info);
         }
     }
     public static class VariablesInfo
     {
         static Dictionary<Variable, TreeNode> VariableInfos;
         public static Dictionary<Type, List<Variable>> VariablesByType;
-        static Dictionary<Variable, IGetSetFunc> VariableValueGetSet;
+        static Dictionary<Variable, VariableValueGetSet> VariableValueGetSet;
         static Dictionary<Variable, object> VariableValues;
         static Dictionary<Variable, object> VariableInitalValues;
-        public static Dictionary<Variable, VariableGetSet> VariableGetSet;
+        public static Dictionary<Variable, IVariableGetSet> VariableGetSet;
         public static void InitializeVariables()
         {
             VariablesByType = new Dictionary<Type, List<Variable>>();
@@ -60,16 +44,18 @@ namespace WROSimulatorV2
             Variable floatVariable1 = new Variable(typeof(float), "floatVariable1");
             Variable MyVector2Variable1 = new Variable(typeof(MyVector2), "MyVector2Variable1");
             Variable intVariable = new Variable(typeof(int), "intVariable1");
+            Variable rectVariable = new Variable(typeof(MyRectangle), "rectVariable");
 
             VariablesByType.Add(typeof(float), new List<Variable>() { floatVariable1 });
             VariablesByType.Add(typeof(int), new List<Variable>() { intVariable });
             VariablesByType.Add(typeof(MyVector2), new List<Variable>() { MyVector2Variable1 });
+            VariablesByType.Add(typeof(MyRectangle), new List<Variable>() { rectVariable });
 
-            VariableValueGetSet = new Dictionary<Variable, IGetSetFunc>();
+            VariableValueGetSet = new Dictionary<Variable, VariableValueGetSet>();
             VariableValues = new Dictionary<Variable, object>();
             VariableInitalValues = new Dictionary<Variable, object>();
             VariableInfos = new Dictionary<Variable, TreeNode>();
-            VariableGetSet = new Dictionary<Variable, VariableGetSet>();
+            VariableGetSet = new Dictionary<Variable, IVariableGetSet>();
             foreach (var vt in VariablesByType)
             {
                 for (int i = 0; i < vt.Value.Count; i++)
@@ -84,15 +70,16 @@ namespace WROSimulatorV2
                     {
                         value = Extensions.GetDefault(vt.Key);
                     }
-                    VariableValues.Add(v, value);
-                    VariableValueGetSet.Add(v, new GetSetFunc<object>((j) => VariableValues[v], (val, j) => VariableValues[v] = val, v.Name));
+                    //VariableValues.Add(v, value);
+                    //VariableValueGetSet.Add(v, new VariableValueGetSet((j) => VariableValues[v], (val, j) => VariableValues[v] = val, v.Name, v.Type, null));
+                    AddVariable(v, value, null, i, null);
                     VariableInitalValues.Add(v, value);
-                    VariableGetSet.Add(v, new VariableGetSet(v.Type, i));
+                    //VariableGetSet.Add(v, new VariableGetSet(v.Type, i));
                 }
             }
         }
 
-        public static VariableGetSet? GetVariableGetSet(Variable? variable)
+        public static IVariableGetSet GetVariableGetSet(Variable? variable)
         {
             if (variable == null)
             {
@@ -105,35 +92,106 @@ namespace WROSimulatorV2
         {
             foreach (var v in VariableInitalValues)
             {
-                VariableValueGetSet[v.Key].ObjSet(v.Value, 0);
+                VariableValueGetSet[v.Key].SetVal(v.Value);
             }
         }
-        public static VariableGetSet AddVariable(Variable variable, object value, TreeNode currentTreeNode, int variableByTypeIndex = -1)
+        public static IVariableGetSet AddVariable(Variable variable, object value, TreeNode currentTreeNode, int variableByTypeIndex = -1, IVariableGetSet parent = null, IVariableGetSet previousGetSet = null)//, bool addVarGetSetWithoutAddingTypeIndex = false)
         {
-            if (variableByTypeIndex < 0)
+            IVariableGetSet variableGetSet;
+            bool addToVariablesByType = variableByTypeIndex < 0;
+            if (parent == null)
             {
-                if (!VariablesByType.ContainsKey(variable.Type))
+                if (addToVariablesByType)
                 {
-                    VariablesByType.Add(variable.Type, new List<Variable>());
+                    if (!VariablesByType.ContainsKey(variable.Type))
+                    {
+                        VariablesByType.Add(variable.Type, new List<Variable>());
+                    }
+                    VariablesByType[variable.Type].Add(variable);
+                    variableByTypeIndex = VariablesByType[variable.Type].Count - 1;
                 }
-                VariablesByType[variable.Type].Add(variable);
-                variableByTypeIndex = VariablesByType[variable.Type].Count - 1;
+
+                variableGetSet = new VariableGetSet(variable.Type, variableByTypeIndex);
+                VariableValueGetSet.Add(variable, new VariableValueGetSet((i) => VariableValues[variable], (val, i) => VariableValues[variable] = val, variable.Name, variable.Type, null));
+
+                VariableValues.Add(variable, value);
             }
-            var variableGetSet = new VariableGetSet(variable.Type, variableByTypeIndex);
-            VariableGetSet.Add(variable, variableGetSet);
-            VariableValues.Add(variable, value);
-            VariableValueGetSet.Add(variable, new GetSetFunc<object>((i) => VariableValues[variable], (val, i) => VariableValues[variable] = val, variable.Name));
+            else
+            {
+                variableGetSet = new ChildVariableGetSet(variable.Type, variableByTypeIndex, parent);
+                VariableValueGetSet.Add(variable, GetChildValueGetSet(parent, variableByTypeIndex, variable));
+            }
 
             if (currentTreeNode != null)
             {
                 VariableInfos.Add(variable, currentTreeNode);
             }
+            //if (addToVariablesByType || addVarGetSetWithoutAddingTypeIndex)
+            //{
+            if (previousGetSet == null)
+            {
+                if (variable.Type.IsSubclassOf(typeof(VisulizableItem)))
+                {
+                    VisulizableItem item = (VisulizableItem)value;
+                    for (int i = 0; i < item.VisulizeItems.Count; i++)
+                    {
+                        Variable child = new Variable(item.VisulizeItems[i].ItemInfo.Type, variable.Name + "." + item.VisulizeItems[i].ItemInfo.Name);
+                        variableGetSet.Children.Add(child);
+                        AddVariable(child, item.VisulizeItems[i].ObjGet(i), currentTreeNode, i, variableGetSet);
+                    }
+                }
+            }
+            else
+            {
+                variableGetSet = previousGetSet;
+            }
+
+            VariableGetSet.Add(variable, variableGetSet);
+            //}
+            //else
+            //{
+            //    variableGetSet = VariableGetSet[variable];
+            //}
+
             return variableGetSet;
+        }
+
+        static VariableValueGetSet GetChildValueGetSet(IVariableGetSet parent, int index, Variable variable)
+        {
+            (int Index, IVariableGetSet Parent) childInfo = (index, parent);
+            return new VariableValueGetSet(
+                (i) =>
+                {
+                    var info = ((int Index, IVariableGetSet Parent))i;
+                    VisulizableItem parentVal = (VisulizableItem)VariableValues[info.Parent.Get()];
+                    return parentVal.VisulizeItems[info.Index].ObjGet(info.Index);
+                },
+                (val, i) =>
+                {
+                    var info = ((int Index, IVariableGetSet Parent))i;
+                    VisulizableItem parentVal = (VisulizableItem)VariableValues[info.Parent.Get()];
+                    parentVal.VisulizeItems[info.Index].ObjSet(val, info.Index);
+                }, variable.Name, variable.Type, childInfo);
+        }
+        public static IVariableGetSet UpdateVariableName(Variable currentVariable, Variable newVariable, TreeNode treeNode, int index)
+        {
+            object value = GetVariable(currentVariable);
+            var variableGetSet = VariableGetSet[currentVariable];
+            RemoveVariable(currentVariable, true);
+            return VariablesInfo.AddVariable(newVariable, value, treeNode, index, null, variableGetSet);
         }
         public static void RemoveVariable(Variable variable, bool ignoreVariablesByType)
         {
             if (!ignoreVariablesByType)
             {
+                var currentGetSet = VariableGetSet[variable];
+                if (currentGetSet.Children != null)
+                {
+                    foreach (var child in currentGetSet.Children)
+                    {
+                        RemoveVariable(child, ignoreVariablesByType);
+                    }
+                }
                 VariablesByType[variable.Type].Remove(variable);
             }
             VariableValues.Remove(variable);
@@ -154,19 +212,19 @@ namespace WROSimulatorV2
         }
         public static object GetVariable(Variable variable)
         {
-            return VariableValueGetSet[variable].ObjGet(0);
+            return VariableValueGetSet[variable].GetVal();
         }
         public static void SetVariable(Variable variable, object value)
         {
-            VariableValueGetSet[variable].ObjSet(value, 0);
+            VariableValueGetSet[variable].SetVal(value);
         }
 
-        public static Dictionary<Type, List<Variable>> GetVariables(TreeNode currentTreeNode)
+        public static Dictionary<Type, List<IVariableGetSet>> GetVariables(TreeNode currentTreeNode)
         {
-            Dictionary<Type, List<Variable>> variables = new Dictionary<Type, List<Variable>>();
+            Dictionary<Type, List<IVariableGetSet>> variables = new Dictionary<Type, List<IVariableGetSet>>();
             foreach (var vt in VariablesByType)
             {
-                variables.Add(vt.Key, new List<Variable>());
+                variables.Add(vt.Key, new List<IVariableGetSet>());
                 foreach (var v in vt.Value)
                 {
                     bool addVariable = true;
@@ -176,7 +234,7 @@ namespace WROSimulatorV2
                     }
                     if (addVariable)
                     {
-                        variables[vt.Key].Add(v);
+                        variables[vt.Key].Add(VariableGetSet[v]);
                     }
                 }
             }

@@ -26,7 +26,7 @@ namespace WROSimulatorV2
         public static readonly int CheckBoxSpace = 0;
         public RadioButtonGroup RadioButtonGroup = null;
         public Form1 Form;
-        public VariableGetSet? PossibleVariable = null;
+        public IVariableGetSet PossibleVariable = null;
         RadioButton radioButton = null;
         List<Control> precedingControls;
         public Label VariableLabel = null;
@@ -175,7 +175,7 @@ namespace WROSimulatorV2
                     precedingControls.Add(VariableLabel);
                     Controls.Add(VariableLabel);
                 }
-                VariableLabel.Text = GetSetFunc.Variable.Value.ToString();
+                VariableLabel.Text = GetSetFunc.Variable.ToString();
             }
             else
             {

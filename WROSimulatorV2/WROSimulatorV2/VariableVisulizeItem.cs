@@ -9,7 +9,7 @@ namespace WROSimulatorV2
 {
     public class VariableVisulizeItem : VisulizableItem
     {
-        public VariableGetSet Variable;
+        public IVariableGetSet Variable;
         Label label;
         public Action<VariableVisulizeItem, LabeledControl> VariableChanged { get; set; }
         LabeledControl parent;
@@ -38,12 +38,12 @@ namespace WROSimulatorV2
             parent = (LabeledControl)control.Parent;
             parent.Form.ShowChooseVariableForm(NewVariable);
         }
-        public void SetVariable(VariableGetSet v)
+        public void SetVariable(IVariableGetSet v)
         {
             Variable = v;
             label.Text = Variable.ToString();
         }
-        void NewVariable(VariableGetSet v)
+        void NewVariable(IVariableGetSet v)
         {
             Variable = v;
             if (label != null)
@@ -80,7 +80,7 @@ namespace WROSimulatorV2
         protected override void Deserialize(Span<char> span)
         {
             var list = DeserializeItems(span);
-            Variable = VariablesInfo.GetVariableGetSet(list[0].Variable.Value).Value;
+            Variable = VariablesInfo.GetVariableGetSet(list[0].Variable.Value);
         }
         public override void Refresh()
         {

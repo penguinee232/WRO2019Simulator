@@ -111,6 +111,7 @@
     <Compile Include="ToRobotLanguageConverter.cs" />
     <Compile Include="TreeNodeImageGenerator.cs" />
     <Compile Include="VariableChangeItem.cs" />
+    <Compile Include="VariableGetSet.cs" />
     <Compile Include="VariablesInfo.cs" />
     <Compile Include="VariableVisulizeItem.cs" />
     <Compile Include="VisulizableItem.cs" />

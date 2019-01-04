@@ -35,22 +35,22 @@ namespace WROSimulatorV2
             this.request = request;
             request.InitRequest(robot);
         }
-        public float GetUpdateDistance()
+        public float GetUpdateDistance(long elapsedMillis)
         {
-            CurrentUpdateDistance = MotorInfo.GetDistance(Power);
+            CurrentUpdateDistance = MotorInfo.GetDistance(Power, elapsedMillis);
             return CurrentUpdateDistance;
         }
     }
     public struct MotorInfo
     {
-        public float MillisPerPowerPerTime { get; set; }
-        public MotorInfo(float millisPerPowerPerTime)
+        public float DegreesPerSecondAt100Power { get; set; }
+        public MotorInfo(float degreesPerSecondAt100Power)
         {
-            MillisPerPowerPerTime = millisPerPowerPerTime;
+            DegreesPerSecondAt100Power = degreesPerSecondAt100Power;
         }
-        public float GetDistance(int power)
+        public float GetDistance(int power, long elapsedMillis)
         {
-            return MillisPerPowerPerTime * power;
+            return DegreesPerSecondAt100Power * (((float)elapsedMillis)/1000) * (((float)power)/100);
         }
     }
 

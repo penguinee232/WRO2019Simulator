@@ -71,7 +71,7 @@ namespace WROSimulatorV2
             SetOtherToDefault();
             Init(false);
         }
-        public ControlNode VariableChanged(VariableGetSet variable, ControlNode node)
+        public ControlNode VariableChanged(IVariableGetSet variable, ControlNode node)
         {
             if (Other.GetType() != variable.Get().Type)
             {

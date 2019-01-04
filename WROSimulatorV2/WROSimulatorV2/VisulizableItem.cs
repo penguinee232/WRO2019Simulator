@@ -23,7 +23,7 @@ namespace WROSimulatorV2
                     var item = VisulizeItems[i];
                     if (item.IsVariable)
                     {
-                        if (!item.Variable.Value.VariableExists())
+                        if (!item.Variable.VariableExists())
                         {
                             item.Variable = null;
                         }
@@ -93,7 +93,7 @@ namespace WROSimulatorV2
                 IGetSetFunc getSet = item.VisulizeItems[i];
                 if (getSet.IsVariable)
                 {
-                    getSet.ObjSet(VariablesInfo.GetVariable(getSet.Variable.Value.Get()), i);
+                    getSet.ObjSet(VariablesInfo.GetVariable(getSet.Variable.Get()), i);
                 }
                 else if (getSet.ItemInfo.Type.IsSubclassOf(typeof(VisulizableItem)))
                 {
@@ -399,7 +399,7 @@ namespace WROSimulatorV2
         void ObjSet(object value, int index);
         ItemInfo ItemInfo { get; set; }
         List<Control> Controls { get; set; }
-        VariableGetSet? Variable { get; set; }
+        IVariableGetSet Variable { get; set; }
         bool IsVariable { get; }
         void CopyBasicInfo(IGetSetFunc newFunc);
         bool IsValidItem(object item);
@@ -410,7 +410,7 @@ namespace WROSimulatorV2
         public Func<int, T> Get;
         public Action<T, int> Set;
         public List<Control> Controls { get; set; }
-        public VariableGetSet? Variable { get; set; }
+        public IVariableGetSet Variable { get; set; }
         public bool IsVariable { get { return Variable != null; } }
         public Func<T, bool> IsValidItemFunc { get; set; }
         public GetSetFunc(Func<int, T> get, Action<T, int> set, string name, List<Control> controls = null, Func<T, bool> isValidItemFunc = null)
@@ -460,7 +460,7 @@ namespace WROSimulatorV2
         {
             if (IsVariable)
             {
-                newFunc.Variable = Variable.Value;
+                newFunc.Variable = Variable;
             }
             else
             {

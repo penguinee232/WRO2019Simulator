@@ -68,7 +68,7 @@ namespace WROSimulatorV2
         float distance = 0;
         public DriveByMillisRequest(Motors motor, int power, float distance, MoveByMillisMode moveByMillisMode)//motor must be drive motor
         {
-            this.distance = distance;
+            this.distance = FieldAndRobotInfo.MillisToDegrees(distance);
             this.moveByMillisMode = moveByMillisMode;
             Motor = motor;
             Power = power;

@@ -16,6 +16,7 @@ namespace WROSimulatorV2
         public static PointF RobotOrigin { get; private set; }//in millimeters
         public static float DistaneBetweenWheels { get; private set; }
         public static readonly float RotationOffset = 90;
+        public static readonly float WheelDiamater = 64.4f;
         public static void Init(PointF fieldImageSize)
         {
             RobotSize = new PointF(250, 250);
@@ -33,6 +34,14 @@ namespace WROSimulatorV2
         {
             return new PointF(FieldSize.X * pixels.X / FieldImageSize.X, FieldSize.Y * pixels.Y / FieldImageSize.Y);
         }
+        public static float DegreesToMillis(float degrees)
+        {
+            return (float)(Math.PI * WheelDiamater * (degrees / 360));
+        }
+        public static float MillisToDegrees(float millis)
+        {
+            return (float)((millis * 360f)/(Math.PI * WheelDiamater));
+        }
     }
 
     public class Robot
@@ -42,7 +51,7 @@ namespace WROSimulatorV2
         public PointF Origin { get; }
         public float Rotation { get; set; }
         public Bitmap Image { get; private set; }
-        public float MillisPerPowerPerTime = .05f;
+        public float DegreesPerSecond = 924;
         public Dictionary<Motors, Component> Components { get; private set; }
         public Dictionary<Motors, float> MotorEncoders { get; private set; }
         public Robot(Bitmap image)
@@ -53,10 +62,10 @@ namespace WROSimulatorV2
             Size = FieldAndRobotInfo.RobotSize;
             Origin = FieldAndRobotInfo.RobotOrigin;
             Components = new Dictionary<Motors, Component>();
-            Components.Add(Motors.LeftDrive, new Component(Motors.LeftDrive, new MotorInfo(MillisPerPowerPerTime)));
-            Components.Add(Motors.RightDrive, new Component(Motors.RightDrive, new MotorInfo(MillisPerPowerPerTime)));
-            Components.Add(Motors.Attachment1, new Component(Motors.Attachment1, new MotorInfo(MillisPerPowerPerTime)));
-            Components.Add(Motors.Attachment2, new Component(Motors.Attachment2, new MotorInfo(MillisPerPowerPerTime)));
+            Components.Add(Motors.LeftDrive, new Component(Motors.LeftDrive, new MotorInfo(DegreesPerSecond)));
+            Components.Add(Motors.RightDrive, new Component(Motors.RightDrive, new MotorInfo(DegreesPerSecond)));
+            Components.Add(Motors.Attachment1, new Component(Motors.Attachment1, new MotorInfo(DegreesPerSecond)));
+            Components.Add(Motors.Attachment2, new Component(Motors.Attachment2, new MotorInfo(DegreesPerSecond)));
             Components.Add(Motors.Other, new OtherComponent());
             MotorEncoders = new Dictionary<Motors, float>();
             foreach (var c in Components)
@@ -75,9 +84,9 @@ namespace WROSimulatorV2
             }
         }
 
-        public void Update()
+        public void Update(long elapsedMillis)
         {
-            UpdateEncoders();
+            UpdateEncoders(elapsedMillis);
             int leftPower = Components[Motors.LeftDrive].Power;
             int rightPower = Components[Motors.RightDrive].Power;
             if (leftPower != 0 || rightPower != 0)
@@ -130,11 +139,11 @@ namespace WROSimulatorV2
             }
         }
 
-        public void UpdateEncoders()
+        public void UpdateEncoders(long elapsedMillis)
         {
             foreach (var m in Components.Keys)
             {
-                MotorEncoders[m] += Components[m].GetUpdateDistance();
+                MotorEncoders[m] += Components[m].GetUpdateDistance(elapsedMillis);
             }
         }
 
