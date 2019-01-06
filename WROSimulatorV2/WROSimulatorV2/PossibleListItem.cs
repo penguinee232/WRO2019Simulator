@@ -10,20 +10,35 @@ namespace WROSimulatorV2
 {
     public class PossibleListItem
     {
+        public static Dictionary<PossibleListEnums, HashSet<object>> StaticPossiblilities;
+        public int SelectedIndex { get; private set; }
         public object CurrentPossiblility;
         HashSet<object> possibilities;
         Action<object, LabeledControl> currentPossiblilityChanged;
         object defaultPossibility;
+        PossibleListEnums Code = 0;
+        public static void AddStaticPossiblilities(PossibleListEnums code, HashSet<object> possibilities)
+        {
+            if(StaticPossiblilities == null)
+            {
+                StaticPossiblilities = new Dictionary<PossibleListEnums, HashSet<object>>();
+            }
+            StaticPossiblilities.Add(code, possibilities);
+        }
         public PossibleListItem()
-            : this(null,null, null)
+            : this(null,PossibleListEnums.VariableTypes, null)
         {
 
         }
-        public PossibleListItem(object defaultPossibility, HashSet<object> possibilities, Action<object, LabeledControl> currentPossiblilityChanged)
+        public PossibleListItem(object defaultPossibility, PossibleListEnums code, Action<object, LabeledControl> currentPossiblilityChanged)
         {
+            Code = code;
             this.defaultPossibility = defaultPossibility;
             this.currentPossiblilityChanged = currentPossiblilityChanged;
-            this.possibilities = possibilities;
+            if (StaticPossiblilities != null && StaticPossiblilities.ContainsKey(Code))
+            {
+                possibilities = StaticPossiblilities[Code];
+            }
             SetDefaultCurrentPossiblility();
         }
         void SetDefaultCurrentPossiblility()
@@ -56,6 +71,7 @@ namespace WROSimulatorV2
                 comboBox.Items.Add(v);
                 index++;
             }
+            SelectedIndex = selectedIndex;
             comboBox.SelectedIndex = selectedIndex;
 
             var control = Form1.GetLabeledControl(name, comboBox, item, index, parent, null, Form1.spaceAmount, partOfRadioButtonGroup, form);
@@ -71,8 +87,23 @@ namespace WROSimulatorV2
         {
             LabeledControl labeledControl = (LabeledControl)sender;
             ComboBox comboBox = (ComboBox)(labeledControl).Control;
+            SelectedIndex = comboBox.SelectedIndex;
             CurrentPossiblility = comboBox.Items[comboBox.SelectedIndex];
             currentPossiblilityChanged?.Invoke(CurrentPossiblility, labeledControl);
+        }
+        public string Serialize()
+        {
+            List<object> items = new List<object>() { Code, SelectedIndex };
+            List<Variable?> variables = new List<Variable?>() { null, null };
+            return VisulizableItem.Serialize(GetType(), items, variables);
+        }
+        public static PossibleListItem Deserialize(Span<char> span)
+        {
+            var list = VisulizableItem.DeserializeItems(span);
+            var enumType = (PossibleListEnums)list[0].Value;
+            var selectedIndex = (int)list[1].Value;
+            var selectedObject = PossibleListItem.StaticPossiblilities[enumType].ToList()[selectedIndex];
+            return new PossibleListItem(selectedObject, enumType, null);
         }
     }
 }

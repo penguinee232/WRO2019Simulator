@@ -91,8 +91,8 @@ namespace WROSimulatorV2
             int rightPower = Components[Motors.RightDrive].Power;
             if (leftPower != 0 || rightPower != 0)
             {
-                float leftDistance = Components[Motors.LeftDrive].CurrentUpdateDistance;
-                float rightDistance = Components[Motors.RightDrive].CurrentUpdateDistance;
+                float leftDistance = FieldAndRobotInfo.DegreesToMillis(Components[Motors.LeftDrive].CurrentUpdateDistance);
+                float rightDistance = FieldAndRobotInfo.DegreesToMillis(Components[Motors.RightDrive].CurrentUpdateDistance);
                 if (leftPower == rightPower)
                 {
                     float distance = leftDistance;

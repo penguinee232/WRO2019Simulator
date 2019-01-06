@@ -16,9 +16,9 @@ namespace WROSimulatorV2
     {
         public virtual void Refresh()
         {
-            if(VisulizeItems != null)
+            if (VisulizeItems != null)
             {
-                for(int i = 0;i < VisulizeItems.Count; i++)
+                for (int i = 0; i < VisulizeItems.Count; i++)
                 {
                     var item = VisulizeItems[i];
                     if (item.IsVariable)
@@ -28,7 +28,7 @@ namespace WROSimulatorV2
                             item.Variable = null;
                         }
                     }
-                    if(item.ItemInfo.Type.IsSubclassOf(typeof(VisulizableItem)))
+                    if (item.ItemInfo.Type.IsSubclassOf(typeof(VisulizableItem)))
                     {
                         VisulizableItem visItem = (VisulizableItem)item.ObjGet(i);
                         visItem.Refresh();
@@ -172,7 +172,7 @@ namespace WROSimulatorV2
                 VisulizeItems[i].Variable = VariablesInfo.GetVariableGetSet(list[i].Variable);
             }
         }
-        protected class PreGetSetFuncInfo
+        public class PreGetSetFuncInfo
         {
             public object Value { get; set; }
             public Variable? Variable { get; set; }
@@ -182,10 +182,10 @@ namespace WROSimulatorV2
                 Variable = variable;
             }
         }
-        protected List<PreGetSetFuncInfo> DeserializeItems(Span<char> span)
+        public static List<PreGetSetFuncInfo> DeserializeItems(Span<char> span)
         {
             List<PreGetSetFuncInfo> list = new List<PreGetSetFuncInfo>();
-            span = span.Slice(1);//slice: {
+                span = span.Slice(1);//slice: {
             int inBraceAmount = 0;
             int inQuoteAmount = 0;
             for (int i = 0; i < span.Length; i++)
@@ -290,15 +290,15 @@ namespace WROSimulatorV2
                 }
                 else
                 {
-                    //if (currentType == typeof(Variable))
-                    //{
-                    //    return Variable.Deserialize(Substing(span));
-                    //}
-                    //else
-                    //{
-                    var converter = TypeDescriptor.GetConverter(currentType);
-                    return converter.ConvertFrom(Substing(span));
-                    //}
+                    if (currentType == typeof(PossibleListItem))
+                    {
+                        return PossibleListItem.Deserialize(span);
+                    }
+                    else
+                    {
+                        var converter = TypeDescriptor.GetConverter(currentType);
+                        return converter.ConvertFrom(Substing(span));
+                    }
                 }
             }
         }
@@ -321,13 +321,13 @@ namespace WROSimulatorV2
                 items.Add(VisulizeItems[i].ObjGet(i));
                 variables.Add(VariableGetSet.GetNullableVariable(VisulizeItems[i].Variable));
             }
-            return Serialize(this, items, variables);
+            return Serialize(GetType(), items, variables);
         }
 
-        protected static string Serialize(VisulizableItem thisItem, List<object> items, List<Variable?> variables)
+        public static string Serialize(Type thisType, List<object> items, List<Variable?> variables)
         {
             string serialize = "";
-            serialize += SerializeType(thisItem.GetType());//"(" + thisItem.GetType().GetTypeName() + ")";
+            serialize += SerializeType(thisType);//"(" + thisItem.GetType().GetTypeName() + ")";
             serialize += "{";
 
             for (int i = 0; i < items.Count; i++)
@@ -345,14 +345,21 @@ namespace WROSimulatorV2
                     }
                     else
                     {
-                        serialize += SerializeType(t);
-                        if (t.IsEnum)
+                        if (t == typeof(PossibleListItem))
                         {
-                            serialize += ((int)items[i]).ToString();
+                            serialize += ((PossibleListItem)items[i]).Serialize();
                         }
                         else
                         {
-                            serialize += items[i].ToString();
+                            serialize += SerializeType(t);
+                            if (t.IsEnum)
+                            {
+                                serialize += ((int)items[i]).ToString();
+                            }
+                            else
+                            {
+                                serialize += items[i].ToString();
+                            }
                         }
                     }
                 }

@@ -33,8 +33,11 @@ namespace WROSimulatorV2
             variables = VariablesInfo.GetVariables(currentTreeNode);
             foreach (var t in variables)
             {
-                variableTypesListBox.Items.Add(t.Key.GetTypeName());
-                variableTypes.Add(t.Key);
+                if (t.Value.Count > 0)
+                {
+                    variableTypesListBox.Items.Add(t.Key.GetTypeName());
+                    variableTypes.Add(t.Key);
+                }
             }
             variableTypesListBox.SelectedIndex = 0;
             spaceAmount = variableNamesListBox.Left - variableTypesListBox.Right;
@@ -54,36 +57,40 @@ namespace WROSimulatorV2
         private void variableListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             ListBox currentListBox = (ListBox)sender;
-            var listBoxInfo = listBoxIndexesAndParents[currentListBox];
-            Type current = variableTypes[variableTypesListBox.SelectedIndex];
-            if (listBoxInfo.Item2 == null)
+            if (currentListBox.SelectedIndex >= 0)
             {
-                currentVariable = variables[current][currentListBox.SelectedIndex];
-            }
-            else
-            {
-                currentVariable = VariablesInfo.VariableGetSet[listBoxInfo.Item2.Children[currentListBox.SelectedIndex]];
-            }
-            for(int i = variableListBoxes.Count - 1; i > listBoxInfo.Item1; i--)
-            {
-                panel1.Controls.Remove(variableListBoxes[i]);
-                listBoxIndexesAndParents.Remove(variableListBoxes[i]);
-                variableListBoxes.RemoveAt(i);
-            }
-            if(currentVariable.Children != null && currentVariable.Children.Count > 0)
-            {
-                ListBox newListBox = new ListBox();
-                newListBox.Size = variableNamesListBox.Size;
-                ListBox lastListBox = variableListBoxes[variableListBoxes.Count - 1];
-                newListBox.Location = new Point(lastListBox.Right + spaceAmount, lastListBox.Location.Y);
-                for(int i = 0; i < currentVariable.Children.Count; i++)
+                var listBoxInfo = listBoxIndexesAndParents[currentListBox];
+                Type current = variableTypes[variableTypesListBox.SelectedIndex];
+                if (listBoxInfo.Item2 == null)
                 {
-                    newListBox.Items.Add(currentVariable.Children[i].Name);
+                    currentVariable = variables[current][currentListBox.SelectedIndex];
                 }
-                panel1.Controls.Add(newListBox);
-                listBoxIndexesAndParents.Add(newListBox, (variableListBoxes.Count, currentVariable));
-                variableListBoxes.Add(newListBox);
-                newListBox.SelectedIndexChanged += variableListBox_SelectedIndexChanged;
+                else
+                {
+                    currentVariable = VariablesInfo.VariableGetSet[listBoxInfo.Item2.Children[currentListBox.SelectedIndex]];
+                }
+                for (int i = variableListBoxes.Count - 1; i > listBoxInfo.Item1; i--)
+                {
+                    panel1.Controls.Remove(variableListBoxes[i]);
+                    listBoxIndexesAndParents.Remove(variableListBoxes[i]);
+                    variableListBoxes.RemoveAt(i);
+                }
+                if (currentVariable.Children != null && currentVariable.Children.Count > 0)
+                {
+                    ListBox newListBox = new ListBox();
+                    newListBox.Size = variableNamesListBox.Size;
+                    ListBox lastListBox = variableListBoxes[variableListBoxes.Count - 1];
+                    newListBox.Location = new Point(lastListBox.Right + spaceAmount, lastListBox.Location.Y);
+                    for (int i = 0; i < currentVariable.Children.Count; i++)
+                    {
+                        newListBox.Items.Add(currentVariable.Children[i].Name);
+                    }
+                    panel1.Controls.Add(newListBox);
+                    listBoxIndexesAndParents.Add(newListBox, (variableListBoxes.Count, currentVariable));
+                    variableListBoxes.Add(newListBox);
+                    newListBox.SelectedIndexChanged += variableListBox_SelectedIndexChanged;
+                    newListBox.Click += variablesListBox_Click;
+                }
             }
         }
 
@@ -106,6 +113,35 @@ namespace WROSimulatorV2
         private void ChooseVariableForm_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void variablesListBox_Click(object sender, EventArgs e)
+        {
+            ListBox currentListBox = (ListBox)sender;
+            if (currentListBox.SelectedIndex >= 0)
+            {
+                var listBoxInfo = listBoxIndexesAndParents[currentListBox];
+                Type current = variableTypes[variableTypesListBox.SelectedIndex];
+                if (listBoxInfo.Item2 == null)
+                {
+                    currentVariable = variables[current][currentListBox.SelectedIndex];
+                }
+                else
+                {
+                    currentVariable = VariablesInfo.VariableGetSet[listBoxInfo.Item2.Children[currentListBox.SelectedIndex]];
+                }
+                for (int i = variableListBoxes.Count - 1; i > listBoxInfo.Item1 + 1; i--)
+                {
+                    panel1.Controls.Remove(variableListBoxes[i]);
+                    listBoxIndexesAndParents.Remove(variableListBoxes[i]);
+                    variableListBoxes.RemoveAt(i);
+                }
+                if (variableListBoxes.Count > listBoxInfo.Item1 + 1)
+                {
+                    int index = variableListBoxes.Count - 1;
+                    variableListBoxes[index].SelectedIndex = -1;
+                }
+            }
         }
     }
 }

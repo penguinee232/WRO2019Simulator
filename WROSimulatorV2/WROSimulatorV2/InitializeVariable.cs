@@ -16,23 +16,23 @@ namespace WROSimulatorV2
         bool variableIsNull = false;
         TreeNode treeNode;
         public InitializeVariablePhrase()
-            : base()
         {
             VariableName = "a";
             variableTypes = new HashSet<TypeNameInfo>();
-            HashSet<object> objectSet = new HashSet<object>();
             TypeNameInfo defaultType = new TypeNameInfo();
-            foreach (var t in Form1.variableTypes)
+            if (PossibleListItem.StaticPossiblilities != null)
             {
-                var current = new TypeNameInfo(t);
-                if (t == Variable.Variable.Type)
+                foreach (var tn in PossibleListItem.StaticPossiblilities[PossibleListEnums.VariableTypes])
                 {
-                    defaultType = current;
+                    TypeNameInfo typeNameInfo = (TypeNameInfo)tn;
+                    if (typeNameInfo.Type == Variable.Variable.Type)
+                    {
+                        defaultType = typeNameInfo;
+                    }
+                    variableTypes.Add(typeNameInfo);
                 }
-                variableTypes.Add(current);
-                objectSet.Add(current);
             }
-            VariableTypes = new PossibleListItem(defaultType, objectSet, PossibleVariableTypeChanged);
+            VariableTypes = new PossibleListItem(defaultType, PossibleListEnums.VariableTypes, PossibleVariableTypeChanged);
             SetGetMiddleItems(GetMiddleItems, false);
 
         }
@@ -121,6 +121,14 @@ namespace WROSimulatorV2
             {
                 VariablesInfo.RemoveVariable(variable.Get(), false);
             }
+        }
+        public static string GetInitPhrase(CommandsNode node)
+        {
+            string code = "";
+            code += ((PossibleListItem)node.Paramaters[0].Value).CurrentPossiblility.ToString();
+            code += " "+ node.Paramaters[1].Value + " = ";
+            code += ToRobotLanguageConverter.GetCPlusPlusCommandNodeCode(node.Paramaters[2]);
+            return code;
         }
     }
 

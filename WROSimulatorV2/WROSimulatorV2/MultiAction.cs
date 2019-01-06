@@ -99,7 +99,7 @@ namespace WROSimulatorV2
         {
             StoreContainedCommands(Form);
             VisulizeableList<Command> list = new VisulizeableList<Command>(commands);
-            return Serialize(this, new List<object>() { list }, new List<Variable?>() { null });
+            return Serialize(GetType(), new List<object>() { list }, new List<Variable?>() { null });
         }
         protected override void Deserialize(Span<char> span)
         {

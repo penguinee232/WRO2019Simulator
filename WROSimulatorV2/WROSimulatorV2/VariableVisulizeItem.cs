@@ -88,6 +88,10 @@ namespace WROSimulatorV2
             {
                 NewVariable(VariableGetSet.Default());
             }
+            else if(label != null)
+            {
+                label.Text = Variable.ToString();
+            }
             base.Refresh();
         }
         public bool IsTrue(CompareOperatiors operatior, object other)

@@ -10,8 +10,8 @@ namespace WROSimulatorV2
     public struct VariableValueGetSet
     {
         public ItemInfo ItemInfo { get; set; }
-        public Func<object, object> Get;
-        public Action<object, object> Set;
+        Func<object, object> Get;
+        Action<object, object> Set;
         public object Info { get; set; }
         public VariableValueGetSet(Func<object, object> get, Action<object, object> set, string name, Type type, object info)
         {
@@ -92,7 +92,15 @@ namespace WROSimulatorV2
         {
             foreach (var v in VariableInitalValues)
             {
-                VariableValueGetSet[v.Key].SetVal(v.Value);
+                object value = v.Value;
+                if (v.Key.Type.IsSubclassOf(typeof(VisulizableItem)))
+                {
+                    VisulizableItem visulizableItem = (VisulizableItem)value;
+                    VisulizableItem newVisItem = (VisulizableItem)Extensions.GetDefaultFromConstructor(v.Key.Type);
+                    visulizableItem.CopyTo(newVisItem);
+                    value = newVisItem;
+                }
+                VariableValueGetSet[v.Key].SetVal(value);
             }
         }
         public static IVariableGetSet AddVariable(Variable variable, object value, TreeNode currentTreeNode, int variableByTypeIndex = -1, IVariableGetSet parent = null, IVariableGetSet previousGetSet = null)//, bool addVarGetSetWithoutAddingTypeIndex = false)
@@ -163,13 +171,34 @@ namespace WROSimulatorV2
                 (i) =>
                 {
                     var info = ((int Index, IVariableGetSet Parent))i;
-                    VisulizableItem parentVal = (VisulizableItem)VariableValues[info.Parent.Get()];
+                    var parentVariable = info.Parent.Get();
+                    VisulizableItem parentVal;
+                    if (VariableValues.ContainsKey(parentVariable))
+                    {
+                        parentVal = (VisulizableItem)VariableValues[parentVariable];
+                    }
+                    else
+                    {
+                        VariableValueGetSet parentGetSet = GetChildValueGetSet(info.Parent.Parent, info.Parent.Index, parentVariable);
+                        parentVal = (VisulizableItem)parentGetSet.GetVal();
+                    }
+
                     return parentVal.VisulizeItems[info.Index].ObjGet(info.Index);
                 },
                 (val, i) =>
                 {
                     var info = ((int Index, IVariableGetSet Parent))i;
-                    VisulizableItem parentVal = (VisulizableItem)VariableValues[info.Parent.Get()];
+                    var parentVariable = info.Parent.Get();
+                    VisulizableItem parentVal;
+                    if (VariableValues.ContainsKey(parentVariable))
+                    {
+                        parentVal = (VisulizableItem)VariableValues[parentVariable];
+                    }
+                    else
+                    {
+                        VariableValueGetSet parentGetSet = GetChildValueGetSet(info.Parent.Parent, info.Parent.Index, parentVariable);
+                        parentVal = (VisulizableItem)parentGetSet.GetVal();
+                    }
                     parentVal.VisulizeItems[info.Index].ObjSet(val, info.Index);
                 }, variable.Name, variable.Type, childInfo);
         }

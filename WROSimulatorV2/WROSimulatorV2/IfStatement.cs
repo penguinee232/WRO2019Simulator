@@ -201,7 +201,7 @@ namespace WROSimulatorV2
             items.Add(elseList);
             variables.Add(null);
             variables.Add(null);
-            return Serialize(this, items, variables);
+            return Serialize(GetType(), items, variables);
         }
         protected override void Deserialize(Span<char> span)
         {

@@ -123,6 +123,8 @@ namespace WROSimulatorV2
             VariablesInfo.InitializeVariables();
             GetVariableTypes();
 
+            InitializePossibleItemsItems();
+
             runCommandsTreeView.StateImageList = new ImageList();
             var stateImages = TreeNodeImageGenerator.Init();
             runCommandsTreeView.StateImageList.Images.AddRange(stateImages.ToArray());
@@ -131,12 +133,34 @@ namespace WROSimulatorV2
             //programNode.StateImageIndex = 0;
         }
 
+        static void InitializePossibleItemsItems()
+        {
+            HashSet<object> variableTypeInfos = new HashSet<object>();
+            foreach (var t in Form1.variableTypes)
+            {
+                var current = new TypeNameInfo(t);
+                variableTypeInfos.Add(current);
+            }
+            PossibleListItem.AddStaticPossiblilities(PossibleListEnums.VariableTypes, variableTypeInfos);
+        }
+
         static void GetVariableTypes()
         {
             variableTypes = new HashSet<Type>();
+            if(Extensions.TypeNames == null)
+            {
+                Extensions.InitTypeNames();
+            }
+            foreach(var t in Extensions.TypeNames.Keys)
+            {
+                variableTypes.Add(t);
+            }
             foreach (var vt in VariablesInfo.VariablesByType)
             {
-                variableTypes.Add(vt.Key);
+                if (!variableTypes.Contains(vt.Key))
+                {
+                    variableTypes.Add(vt.Key);
+                }
             }
             foreach (var c in Commands)
             {
@@ -151,7 +175,12 @@ namespace WROSimulatorV2
                 var newItem = item.VisulizeItems[i];
                 if (!variableTypes.Contains(newItem.ItemInfo.Type))
                 {
-                    variableTypes.Add(newItem.ItemInfo.Type);
+                    if (newItem.ItemInfo.Type != typeof(VariableVisulizeItem) && 
+                        !newItem.ItemInfo.Type.IsSubclassOf(typeof(VariableChangeItem)) &&
+                        newItem.ItemInfo.Type != typeof(PossibleListItem))
+                    {
+                        variableTypes.Add(newItem.ItemInfo.Type);
+                    }
                     if (newItem.ItemInfo.Type.IsSubclassOf(typeof(VisulizableItem)))
                     {
                         GetVariableTypesR((VisulizableItem)newItem.ObjGet(i));
@@ -446,12 +475,28 @@ namespace WROSimulatorV2
                 {
                     if (item.ItemInfo.Type == typeof(bool))
                     {
-                        CheckBox cBox = (CheckBox)node.Control.Control;
-                        cBox.Checked = (bool)item.ObjGet(index);
+                        if (node.Control.Control.GetType() == typeof(CheckBox))
+                        {
+                            CheckBox cBox = (CheckBox)node.Control.Control;
+                            cBox.Checked = (bool)item.ObjGet(index);
+                        }
+                        else
+                        {
+                            node = LoadItem(item, new Point(0, 0), node.Parent, index, node.Parent == null ? false : node.Parent.Control.RadioButtonGroup != null, form);
+                            return true;
+                        }
                     }
                     else
                     {
-                        node.Control.Control.Text = item.ObjGet(index).ToString();
+                        if (node.Control.Control.GetType() != typeof(CheckBox))
+                        {
+                            node.Control.Control.Text = item.ObjGet(index).ToString();
+                        }
+                        else
+                        {
+                            node = LoadItem(item, new Point(0, 0), node.Parent, index, node.Parent == null ? false : node.Parent.Control.RadioButtonGroup != null, form);
+                            return true;
+                        }
                     }
                 }
             }
@@ -1121,7 +1166,7 @@ namespace WROSimulatorV2
                 }
             }
         }
-        
+
     }
 
 

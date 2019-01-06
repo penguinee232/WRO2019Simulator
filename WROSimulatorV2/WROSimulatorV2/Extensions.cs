@@ -144,8 +144,8 @@ namespace WROSimulatorV2
 
             return points;
         }
-        static Dictionary<Type, HashSet<Type>> ImplicitNumericConversions;
-        static void InitImplicitNumericConversions()
+        public static Dictionary<Type, HashSet<Type>> ImplicitNumericConversions;
+        public static void InitImplicitNumericConversions()
         {
             ImplicitNumericConversions = new Dictionary<Type, HashSet<Type>>();
             ImplicitNumericConversions.Add(typeof(sbyte), new HashSet<Type> { typeof(short), typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal) });
@@ -253,27 +253,28 @@ namespace WROSimulatorV2
             }
             return false;
         }
-        public static Dictionary<Type, string> typeNames;
+        public static Dictionary<Type, string> TypeNames;
         public static void InitTypeNames()
         {
-            typeNames = new Dictionary<Type, string>();
-            typeNames.Add(typeof(int), "int");
-            typeNames.Add(typeof(float), "float");
-            typeNames.Add(typeof(double), "double");
-            typeNames.Add(typeof(long), "long");
-            typeNames.Add(typeof(short), "short");
-            typeNames.Add(typeof(uint), "uint");
-            typeNames.Add(typeof(ulong), "ulong");
-            typeNames.Add(typeof(ushort), "ushort");
-            typeNames.Add(typeof(byte), "byte");
-            typeNames.Add(typeof(sbyte), "sbyte");
-            typeNames.Add(typeof(char), "char");
-            typeNames.Add(typeof(string), "string");
+            TypeNames = new Dictionary<Type, string>();
+            TypeNames.Add(typeof(int), "int");
+            TypeNames.Add(typeof(float), "float");
+            TypeNames.Add(typeof(double), "double");
+            TypeNames.Add(typeof(long), "long");
+            TypeNames.Add(typeof(short), "short");
+            TypeNames.Add(typeof(uint), "uint");
+            TypeNames.Add(typeof(ulong), "ulong");
+            TypeNames.Add(typeof(ushort), "ushort");
+            TypeNames.Add(typeof(byte), "byte");
+            TypeNames.Add(typeof(sbyte), "sbyte");
+            TypeNames.Add(typeof(char), "char");
+            TypeNames.Add(typeof(string), "string");
+            TypeNames.Add(typeof(bool), "bool");
         }
         public static string GetTypeName(this Type type)
         {
-            if (typeNames == null) { InitTypeNames(); }
-            if (typeNames.ContainsKey(type)) { return typeNames[type]; }
+            if (TypeNames == null) { InitTypeNames(); }
+            if (TypeNames.ContainsKey(type)) { return TypeNames[type]; }
             string name = type.Name;
             if (!type.IsConstructedGenericType) { return name; }
             var genericTypes = type.GetGenericArguments();

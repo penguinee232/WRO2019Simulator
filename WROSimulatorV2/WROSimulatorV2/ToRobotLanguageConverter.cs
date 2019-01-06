@@ -27,10 +27,13 @@ namespace WROSimulatorV2
                 cPlusPlusExceptions.Add(new ExceptionInfo((t) => t == typeof(bool), (n) => ((bool)n.Value) ? "true" : "false"));
                 cPlusPlusExceptions.Add(new ExceptionInfo((t) => t.IsTheSameGenericType(typeof(VisulizeableList<>)), ListConverter));
                 cPlusPlusExceptions.Add(new ExceptionInfo((t) => t == typeof(IfStatement), IfConverter));
+                cPlusPlusExceptions.Add(new ExceptionInfo((t) => t == typeof(WhileCommand), WhileConverter));
+                cPlusPlusExceptions.Add(new ExceptionInfo((t) => t == typeof(SetVariable), SetVariableConverter));
+                cPlusPlusExceptions.Add(new ExceptionInfo((t) => t == typeof(InitializeVariable), InitVariableConverter));
                 cPlusPlusExceptions.Add(new ExceptionInfo((t) => t == typeof(VariableVisulizeItem),
                     (n) => n.Paramaters[0].Variable.Value.Name));
                 converterExeptions.Add(RobotLanguages.CPlusPlus, cPlusPlusExceptions);
-                CPlusPlusNoCommandFuncTypes = new HashSet<Type>() { typeof(IfStatement) };
+                CPlusPlusNoCommandFuncTypes = new HashSet<Type>() { typeof(IfStatement), typeof(WhileCommand), typeof(SetVariable), typeof(InitializeVariable) };
             }
         }
         public static string GetRobotCode(string serializedCommands, RobotLanguages robotLanguage)
@@ -95,16 +98,16 @@ namespace WROSimulatorV2
                 }
                 else
                 {
-                    //if (currentType == typeof(Variable))
-                    //{
-                    //    return Variable.Deserialize(Substing(span));
-                    //}
-                    //else
-                    //{
-                    var converter = TypeDescriptor.GetConverter(currentType);
-                    value = converter.ConvertFrom(Substing(span));
+                    if (currentType == typeof(PossibleListItem))
+                    {
+                        value = PossibleListItem.Deserialize(span);
+                    }
+                    else
+                    {
+                        var converter = TypeDescriptor.GetConverter(currentType);
+                        value = converter.ConvertFrom(Substing(span));
+                    }
                     return new CommandsNode(currentType, value, variable, null);
-                    //}
                 }
             }
         }
@@ -261,14 +264,20 @@ namespace WROSimulatorV2
         }
         static string IfConverter(CommandsNode node)
         {
-            string code = "if(";
+            return LoopAndIfConverter(node, "if", node.Paramaters[1].Paramaters, node.Paramaters[2].Paramaters);
+        }
+        static string WhileConverter(CommandsNode node)
+        {
+            return LoopAndIfConverter(node, "while", node.Paramaters[1].Paramaters, null);
+        }
+        static string LoopAndIfConverter(CommandsNode node, string loopIfName, List<CommandsNode> thenCommands, List<CommandsNode> elseCommands)
+        {
+            string code = loopIfName + "(";
             //BoolPhrase boolPhrase = (BoolPhrase)node.Paramaters[0].Value;
             code += BoolPhrase.GetBoolPhrase(node.Paramaters[0]);
             code += ")" + "\n" + "{" + "\n";
-            List<CommandsNode> thenCommands = node.Paramaters[1].Paramaters;
             code += CPLusPlusConverter(thenCommands, 1);
             code += "\n" + "}";
-            List<CommandsNode> elseCommands = node.Paramaters[2].Paramaters;
             if (elseCommands != null && elseCommands.Count > 0)
             {
                 code += "\n" + "else" + "\n" + "{" + "\n";
@@ -278,10 +287,25 @@ namespace WROSimulatorV2
             return code;
         }
 
+        static string SetVariableConverter(CommandsNode node)
+        {
+            string code = "";
+            code += SetVariablePhrase.GetSetPhrase(node.Paramaters[0]);
+            code += ";";
+            return code;
+        }
+        static string InitVariableConverter(CommandsNode node)
+        {
+            string code = "";
+            code += InitializeVariablePhrase.GetInitPhrase(node.Paramaters[0]);
+            code += ";";
+            return code;
+        }
+
         static string GetCPlusPlusTypeName(Type type)
         {
-            if (Extensions.typeNames == null) { Extensions.InitTypeNames(); }
-            if (Extensions.typeNames.ContainsKey(type)) { return Extensions.typeNames[type]; }
+            if (Extensions.TypeNames == null) { Extensions.InitTypeNames(); }
+            if (Extensions.TypeNames.ContainsKey(type)) { return Extensions.TypeNames[type]; }
             string name = type.Name;
 
             if (!type.IsConstructedGenericType) { return name; }

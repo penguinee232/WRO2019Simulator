@@ -51,6 +51,7 @@
             this.variableNamesListBox.Name = "variableNamesListBox";
             this.variableNamesListBox.Size = new System.Drawing.Size(118, 277);
             this.variableNamesListBox.TabIndex = 1;
+            this.variableNamesListBox.Click += new System.EventHandler(this.variablesListBox_Click);
             this.variableNamesListBox.SelectedIndexChanged += new System.EventHandler(this.variableListBox_SelectedIndexChanged);
             // 
             // chooseVariableButton
@@ -65,7 +66,7 @@
             // 
             // panel1
             // 
-            this.panel1.AutoSize = true;
+            this.panel1.AutoScroll = true;
             this.panel1.Controls.Add(this.variableTypesListBox);
             this.panel1.Controls.Add(this.variableNamesListBox);
             this.panel1.Location = new System.Drawing.Point(7, 10);
@@ -86,7 +87,6 @@
             this.Load += new System.EventHandler(this.ChooseVariableForm_Load);
             this.panel1.ResumeLayout(false);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 

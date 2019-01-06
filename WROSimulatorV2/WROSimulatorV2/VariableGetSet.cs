@@ -8,6 +8,8 @@ namespace WROSimulatorV2
 {
     public interface IVariableGetSet
     {
+        int Index { get; }
+        IVariableGetSet Parent { get; }
         List<Variable> Children { get; set; }
         Variable Get();
         void Set(Variable variable);
@@ -18,26 +20,26 @@ namespace WROSimulatorV2
 
     public struct ChildVariableGetSet:IVariableGetSet
     {
+        public IVariableGetSet Parent { get; private set; }
         public List<Variable> Children { get; set; }
         public Type Type { get; private set; }
         public int Index { get; private set; }
         public bool IsChild => true;
-        IVariableGetSet parent;
 
         public ChildVariableGetSet(Type type, int index, IVariableGetSet parent)
         {
-            this.parent = parent;
+            Parent = parent;
             Type = type;
             Index = index;
             Children = new List<Variable>();
         }
         public Variable Get()
         {
-            return parent.Children[Index];
+            return Parent.Children[Index];
         }
         public void Set(Variable variable)
         {
-            parent.Children[Index] = variable;
+            Parent.Children[Index] = variable;
         }
         public override string ToString()
         {
@@ -45,7 +47,7 @@ namespace WROSimulatorV2
         }
         public bool VariableExists()
         {
-            return parent.Children.Count > Index && parent.VariableExists();
+            return Parent.Children.Count > Index && Parent.VariableExists();
         }
     }
 
@@ -55,8 +57,12 @@ namespace WROSimulatorV2
         public Type Type { get; private set; }
         public int Index { get; private set; }
         public bool IsChild => false;
+
+        public IVariableGetSet Parent { get; }
+
         public VariableGetSet(Type type, int index)
         {
+            Parent = null;
             Index = index;
             Type = type;
             Children = new List<Variable>();

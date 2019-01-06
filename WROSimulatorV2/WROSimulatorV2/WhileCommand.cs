@@ -90,7 +90,7 @@ namespace WROSimulatorV2
 
             StoreContainedCommands(Form);
             LoopFunctions.Serialize(items, variables, loopCommands);
-            return Serialize(this, items, variables);
+            return Serialize(GetType(), items, variables);
         }
         protected override void Deserialize(Span<char> span)
         {

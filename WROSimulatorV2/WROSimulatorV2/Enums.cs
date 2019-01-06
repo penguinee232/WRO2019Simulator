@@ -52,4 +52,8 @@ namespace WROSimulatorV2
         Divide,
         Mod
     }
+    public enum PossibleListEnums
+    {
+        VariableTypes
+    }
 }

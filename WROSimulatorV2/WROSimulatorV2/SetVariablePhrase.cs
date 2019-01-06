@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace WROSimulatorV2
 {
@@ -22,7 +18,7 @@ namespace WROSimulatorV2
             };
         }
 
-        public static string GetBoolPhrase(CommandsNode node)
+        public static string GetSetPhrase(CommandsNode node)
         {
             string code = "";
             code += node.Paramaters[0].Paramaters[0].Variable.Value.Name + " ";
