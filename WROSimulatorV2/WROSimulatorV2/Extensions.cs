@@ -424,7 +424,19 @@ namespace WROSimulatorV2
         }
         public static float GetMinimumRotation(float degrees)
         {
-
+            if (Math.Abs(degrees) >= 360)
+            {
+                degrees %= 360;
+            }
+            if(degrees > 180)
+            {
+                degrees -= 360;
+            }
+            if(degrees <= -180)
+            {
+                degrees += 360;
+            }
+            return degrees;
         }
     }
 }
