@@ -53,7 +53,7 @@ namespace WROSimulatorV2
         public override void InitRequest(Robot robot)
         {
         }
-        public override bool UpdateRequest(Robot robot)
+        public override bool UpdateRequest(Robot robot, long elapsedMillis)
         {
             setVariablePhrase.SetVariableValue();
             return false;

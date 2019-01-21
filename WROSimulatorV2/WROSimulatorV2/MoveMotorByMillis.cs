@@ -16,7 +16,7 @@ namespace WROSimulatorV2
             Power = 75;
             Distance = 0;
             Motor = Motors.LeftDrive;
-            ItemsNotValid<Motors> itemsNotValid = new ItemsNotValid<Motors>(new HashSet<Motors>() { Motors.Other });
+            ItemsNotValid<Motors> itemsNotValid = new ItemsNotValid<Motors>(new HashSet<Motors>() { Motors.NotApplicable });
             VisulizeItems = new List<IGetSetFunc>()
             {
                 new GetSetFunc<int>((i)=>Power, (v,i)=>Power = v, "Power", null, Extensions.PowerIsValid),
@@ -63,7 +63,7 @@ namespace WROSimulatorV2
         {
             startEncoder = robot.MotorEncoders[Motor];
         }
-        public override bool UpdateRequest(Robot robot)
+        public override bool UpdateRequest(Robot robot, long elapsedMillis)
         {
             float currentEncoder = robot.MotorEncoders[Motor];
             float currentDistance = Math.Abs(currentEncoder - startEncoder);

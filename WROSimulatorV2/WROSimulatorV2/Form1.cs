@@ -52,13 +52,14 @@ namespace WROSimulatorV2
         string currentFile = null;
         HashSet<TreeNode> breakPointedNodes;
         public static HashSet<Type> variableTypes;
-
+        public static Bitmap FieldBitmap;
         Stopwatch stopWatch;
         public Form1()
         {
             InitializeComponent();
             debugForm = this;
             FieldPictureBox = fieldPictureBox;
+            FieldBitmap = (Bitmap)fieldPictureBox.Image;
             standardBackColor = runCommandsTreeView.BackColor;
             Panel = panel1;
 
@@ -147,11 +148,11 @@ namespace WROSimulatorV2
         static void GetVariableTypes()
         {
             variableTypes = new HashSet<Type>();
-            if(Extensions.TypeNames == null)
+            if (Extensions.TypeNames == null)
             {
                 Extensions.InitTypeNames();
             }
-            foreach(var t in Extensions.TypeNames.Keys)
+            foreach (var t in Extensions.TypeNames.Keys)
             {
                 variableTypes.Add(t);
             }
@@ -175,7 +176,7 @@ namespace WROSimulatorV2
                 var newItem = item.VisulizeItems[i];
                 if (!variableTypes.Contains(newItem.ItemInfo.Type))
                 {
-                    if (newItem.ItemInfo.Type != typeof(VariableVisulizeItem) && 
+                    if (newItem.ItemInfo.Type != typeof(VariableVisulizeItem) &&
                         !newItem.ItemInfo.Type.IsSubclassOf(typeof(VariableChangeItem)) &&
                         newItem.ItemInfo.Type != typeof(PossibleListItem))
                     {
@@ -215,14 +216,18 @@ namespace WROSimulatorV2
         bool breakPointMode = false;
         private void timer1_Tick(object sender, EventArgs e)
         {
-            long elapsedMillis = stopWatch.ElapsedMilliseconds;
-            //string serialize = CommandsFromTreeNodes[programNode.FirstNode].Serialize();
+            long elapsedMillis = 32;//stopWatch.ElapsedMilliseconds;
+                                    //string serialize = CommandsFromTreeNodes[programNode.FirstNode].Serialize();
+            label1.Text = robot.Sensors[ColorSensors.LeftDownColor].GetColor(robot, FieldBitmap).ToString();
             if (runningCommandsMode && !pauseMode)
             {
-                bool working = rcm.Update(out currentlyRunningNode);
+                bool working = rcm.Update(elapsedMillis, out currentlyRunningNode);
                 if (!working)
                 {
-                    StopRunningCommands(false);
+                    if (!AreMotorsMoving())
+                    {
+                        StopRunningCommands(false);
+                    }
                 }
                 else
                 {
@@ -244,13 +249,31 @@ namespace WROSimulatorV2
                     }
                 }
             }
+
             robot.Update(elapsedMillis);
             robotGfx.Clear(Color.Transparent);
             robot.Draw(robotGfx);
+            var colorPoint = Extensions.RotatePointAroundPoint(robot.Origin, robot.Sensors[ColorSensors.LeftDownColor].Position, -robot.Rotation).Add(robot.Location).Subtract(robot.Origin);
+            colorPoint = FieldAndRobotInfo.ToPixels(colorPoint);
+            robotGfx.FillEllipse(Brushes.Orange, new RectangleF(colorPoint.Subtract(new PointF(5, 5)), new Size(10, 10)));
+            
             robotCanvas.Image = robotDrawArea;
             possibleCanvas.Image = possibleCanvasDrawArea;
             stopWatch.Restart();
         }
+
+        bool AreMotorsMoving()
+        {
+            foreach (var c in robot.Components)
+            {
+                if (c.Value.Power != 0 || c.Value.MotorInfo.Velocity != 0)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         HashSet<TreeNode> currentlyRunnningNodes;
         TreeNode lastRunningTreeNode = null;
         void RunningTreeColoring()
@@ -955,7 +978,7 @@ namespace WROSimulatorV2
             }
         }
 
-        Dictionary<Motors, int> storedMotorPowers;
+        Dictionary<Motors, (int power, float velocity)> storedMotorInfo;
         void StartRunningCommands()
         {
             if (!pauseMode)
@@ -973,7 +996,8 @@ namespace WROSimulatorV2
             {
                 foreach (var c in robot.Components)
                 {
-                    c.Value.Power = storedMotorPowers[c.Key];
+                    c.Value.Power = storedMotorInfo[c.Key].power;
+                    c.Value.MotorInfo.Velocity = storedMotorInfo[c.Key].velocity;
                 }
                 Queue<Command> commands = new Queue<Command>();
                 RCM.GetCommands(lastRunningTreeNode, 0, this, commands, true, false, breakPointMode);
@@ -995,7 +1019,7 @@ namespace WROSimulatorV2
                 runCommandsButton.BackColor = Color.Yellow;
                 runCommandsButton.Text = "Continue";
                 runCommandsButton.ForeColor = Color.Black;
-                storedMotorPowers = new Dictionary<Motors, int>();
+                storedMotorInfo = new Dictionary<Motors, (int power, float velocity)>();
 
                 runningCommandsMode = true;
                 pauseMode = true;
@@ -1019,9 +1043,10 @@ namespace WROSimulatorV2
             {
                 if (pause)
                 {
-                    storedMotorPowers.Add(c.Key, c.Value.Power);
+                    storedMotorInfo.Add(c.Key, (c.Value.Power, c.Value.MotorInfo.Velocity));
                 }
                 c.Value.Power = 0;
+                c.Value.MotorInfo.Velocity = 0;
             }
             panel1.Enabled = true;
         }

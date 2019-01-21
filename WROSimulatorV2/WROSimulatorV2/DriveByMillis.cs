@@ -66,6 +66,13 @@ namespace WROSimulatorV2
         float startEncoder = 0;
         MoveByMillisMode moveByMillisMode;
         float distance = 0;
+        float accel;
+        float accelTime;
+        float timeToStartDeceleration;
+        float totalTime;
+        long time;
+        float travelVel;
+        float expectedPos;
         public DriveByMillisRequest(Motors motor, int power, float distance, MoveByMillisMode moveByMillisMode)//motor must be drive motor
         {
             this.distance = FieldAndRobotInfo.MillisToDegrees(distance);
@@ -76,6 +83,7 @@ namespace WROSimulatorV2
         public override void InitRequest(Robot robot)
         {
             startEncoder = GetEncoder(moveByMillisMode, robot);
+            GetTrapInfo(robot);
         }
         static float GetEncoder(MoveByMillisMode moveByMillisMode, Robot robot)
         {
@@ -89,11 +97,36 @@ namespace WROSimulatorV2
                     return (robot.MotorEncoders[Motors.LeftDrive] + robot.MotorEncoders[Motors.RightDrive]) / 2;
             }
         }
+        void GetTrapInfo(Robot robot)
+        {
+            expectedPos = 0;
+            time = 0;
+            travelVel = robot.Components[Motor].MotorInfo.GetMaxTravelVelocity(Power);
+            accelTime = robot.Components[Motor].MotorInfo.AccelTime;
+            float decelTime = accelTime * ((float)Power / 100);
+            float decel = travelVel / decelTime;
+            accel = travelVel / accelTime;
+            float decelDistance = ((float)Math.Pow(accelTime, 2) * accel)/2;
+            float accelDistance = ((float)Math.Pow(decelTime, 2) * decel)/2;
+            float changePosAtMaxVel = distance - decelDistance- accelDistance;
+            float timeAtMaxVel = 0;
+            if (travelVel != 0)
+            {
+                timeAtMaxVel = changePosAtMaxVel / travelVel;
+            }
+            timeToStartDeceleration = accelTime + timeAtMaxVel;
+            totalTime = timeToStartDeceleration + accelTime;
+        }
 
-        public override bool UpdateRequest(Robot robot)
+        public override bool UpdateRequest(Robot robot, long elapsedMillis)
         {
             float currentEncoder = GetEncoder(moveByMillisMode, robot);
             float currentDistance = Math.Abs(currentEncoder - startEncoder);
+            //if (time > timeToStartDeceleration)//time < totalTime
+            //{
+            //    Power = 0;
+            //}
+            time += elapsedMillis;
             if (currentDistance >= distance)
             {
                 Power = 0;

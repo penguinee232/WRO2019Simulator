@@ -58,11 +58,11 @@ namespace WROSimulatorV2
             }
         }
 
-        public bool Update(out TreeNode currentlyRunCommand)//returns true if working false if done
+        public bool Update(long elapsedMillis, out TreeNode currentlyRunCommand)//returns true if working false if done
         {
             if (childRCM != null)
             {
-                if (!childRCM.Update(out currentlyRunCommand))
+                if (!childRCM.Update(elapsedMillis, out currentlyRunCommand))
                 {
                     childRCM = null;
                     currentCommand = (Command)varialbeCurrentCommand.GetItemWithVariablesSet();
@@ -122,7 +122,7 @@ namespace WROSimulatorV2
                         }
                         if(currentAction != null)
                         {
-                            if(!currentAction.Update(robot))
+                            if(!currentAction.Update(robot,elapsedMillis))
                             {
                                 currentAction = null;
                             }

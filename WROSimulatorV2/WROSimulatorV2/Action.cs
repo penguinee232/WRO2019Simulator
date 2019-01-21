@@ -19,7 +19,7 @@ namespace WROSimulatorV2
             foreach(var r in requests)
             {
                 requestsWorking.Add(true);
-                if(r.Motor != Motors.Other)
+                if(r.Motor != Motors.NotApplicable)
                 {
                     if(motors.Contains(r.Motor))
                     {
@@ -30,7 +30,7 @@ namespace WROSimulatorV2
             }
             haveInit = false;
         }
-        public bool Update(Robot robot)//returns true if working false if done
+        public bool Update(Robot robot, long elapsedMillis)//returns true if working false if done
         {
             bool working = false;
             for (int i = 0; i < requests.Count; i++)
@@ -42,7 +42,7 @@ namespace WROSimulatorV2
                     {
                         robot.Components[request.Motor].StartRequest(request, robot);
                     }
-                    requestsWorking[i] = robot.Components[request.Motor].Update(robot);
+                    requestsWorking[i] = robot.Components[request.Motor].Update(robot,elapsedMillis);
                     if (requestsWorking[i])
                     {
                         working = true;

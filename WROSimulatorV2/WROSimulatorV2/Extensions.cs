@@ -125,6 +125,16 @@ namespace WROSimulatorV2
         {
             return (180 / Math.PI) * val;
         }
+        public static PointF RotatePointAroundPoint(PointF origin, PointF point, float rotation)
+        {
+            PointF originDistance = new PointF(point.X - origin.X, point.Y - origin.Y);
+            double angle = Math.Atan2(originDistance.Y, originDistance.X);
+            angle += Extensions.ToRadians(rotation);
+            double h = originDistance.Distance(new PointF(0, 0));
+            double x = Math.Cos(angle) * h;
+            double y = Math.Sin(angle) * h;
+            return new PointF((float)x + origin.X, (float)y + origin.Y);
+        }
         public static PointF[] GetDestinationPoints(RectangleF rectangle, PointF origin, float rotation)
         {
             rotation *= -1;
@@ -391,6 +401,30 @@ namespace WROSimulatorV2
                 default:
                     return val == val2;
             }
+        }
+        public static bool Positive(this float f)
+        {
+            if(f >= 0)
+            {
+                return true;
+            }
+            return false;
+        }
+        public static float GetPositiveRotation(float degrees)
+        {
+            if (Math.Abs(degrees) >= 360)
+            {
+                degrees %= 360;
+            }
+            if (degrees < 0)
+            {
+                degrees += 360f;
+            }
+            return degrees;
+        }
+        public static float GetMinimumRotation(float degrees)
+        {
+
         }
     }
 }

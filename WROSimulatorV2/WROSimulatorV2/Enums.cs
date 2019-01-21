@@ -18,7 +18,7 @@ namespace WROSimulatorV2
         RightDrive,
         Attachment1,
         Attachment2,
-        Other
+        NotApplicable
     }
     public enum MoveByMillisMode
     {
@@ -55,5 +55,10 @@ namespace WROSimulatorV2
     public enum PossibleListEnums
     {
         VariableTypes
+    }
+    public enum ColorSensors
+    {
+        LeftDownColor,
+        RightDownColor,
     }
 }

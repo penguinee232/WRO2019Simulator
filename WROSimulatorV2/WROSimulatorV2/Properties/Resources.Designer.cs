@@ -109,5 +109,15 @@ namespace WROSimulatorV2.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap WRO_2019_Regular_04_Senior_Mat_Printing_1 {
+            get {
+                object obj = ResourceManager.GetObject("WRO-2019-Regular-04-Senior-Mat-Printing-1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }

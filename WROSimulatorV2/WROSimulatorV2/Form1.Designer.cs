@@ -48,6 +48,7 @@
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.breakpointButton = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.fieldPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
@@ -118,11 +119,11 @@
             // 
             // fieldPictureBox
             // 
-            this.fieldPictureBox.Image = global::WROSimulatorV2.Properties.Resources.WRO_2018_1;
+            this.fieldPictureBox.Image = global::WROSimulatorV2.Properties.Resources.WRO_2019_Regular_04_Senior_Mat_Printing_1;
             this.fieldPictureBox.Location = new System.Drawing.Point(413, 265);
             this.fieldPictureBox.Name = "fieldPictureBox";
             this.fieldPictureBox.Size = new System.Drawing.Size(1034, 500);
-            this.fieldPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.fieldPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.fieldPictureBox.TabIndex = 8;
             this.fieldPictureBox.TabStop = false;
             // 
@@ -227,12 +228,22 @@
             this.breakpointButton.UseVisualStyleBackColor = true;
             this.breakpointButton.Click += new System.EventHandler(this.breakpointButton_Click);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(1148, 125);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(35, 13);
+            this.label1.TabIndex = 17;
+            this.label1.Text = "label1";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(1167, 767);
+            this.ClientSize = new System.Drawing.Size(1447, 765);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.breakpointButton);
             this.Controls.Add(this.openFileButton);
             this.Controls.Add(this.saveAsButton);
@@ -279,6 +290,7 @@
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.Button breakpointButton;
+        private System.Windows.Forms.Label label1;
     }
 }
 

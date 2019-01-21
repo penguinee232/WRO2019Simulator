@@ -72,6 +72,7 @@
     <Compile Include="ChooseVariableForm.Designer.cs">
       <DependentUpon>ChooseVariableForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="ColorSensor.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="Component.cs" />
     <Compile Include="ControlNode.cs" />
@@ -97,6 +98,7 @@
     <Compile Include="MiscItemControls.cs" />
     <Compile Include="MoveMotorByMillis.cs" />
     <Compile Include="MultiAction.cs" />
+    <Compile Include="PID.cs" />
     <Compile Include="PossibleListItem.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -109,6 +111,7 @@
     <Compile Include="Test.cs" />
     <Compile Include="ToRobotLanguageConverter.cs" />
     <Compile Include="TreeNodeImageGenerator.cs" />
+    <Compile Include="TurnByGyro.cs" />
     <Compile Include="VariableChangeItem.cs" />
     <Compile Include="VariableGetSet.cs" />
     <Compile Include="VariablesInfo.cs" />
@@ -163,6 +166,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\startPoint.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\WRO-2019-Regular-04-Senior-Mat-Printing-1.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
